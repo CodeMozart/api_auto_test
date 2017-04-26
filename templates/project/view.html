@@ -1,0 +1,277 @@
+{% extends "base.html" %} {% block content %} {% load custom_filter %}
+
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">添加项目</h3>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <table id="add_project" class="table table-bordered table-striped">
+                {% csrf_token %}
+                <thead>
+                <tr>
+                    <th>
+                        <input id="add_name" name="name" type="text" class="form-control" placeholder="项目名">
+                    </th>
+                    <th>
+                        <input id="add_created" name="created" type="text" class="form-control datepicker" placeholder="创建时间">
+                    </th>
+                    <th>
+                        <input id="add_owner" name="owner" type="text" class="form-control" placeholder="负责人">
+                    </th>
+                    <th>
+                        <div class="box-tools">
+                            <button type="submit" class="btn btn-success" onclick="add_project()">
+                                <i class="fa fa-plus"></i></button>
+                        </div>
+                    </th>
+                </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    <div class="box">
+        <div class="box-header">
+            <h3 class="box-title">项目列表</h3>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body table-responsive">
+            <div class="dataTables_wrapper form-inline dt-bootstrap">
+                <table id="project_table" class="table table-hover table-bordered">
+                    <thead>
+                    <tr>
+                        <th>项目名称</th>
+                        <th>创建时间</th>
+                        <th>负责人</th>
+                        <th>操作</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for project in project_list %}
+                        <tr id="project_tr{{ project.id }}" onclick="click_project({{ project.id }})">
+                            <th><a href="/project/6">{{ project.name }}</a>
+                            </th>
+                            <th>{{ project.created }}</th>
+                            <th>{{ project.owner }}</th>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-warning" onclick="change_project({{ project.id }})"><i class="fa fa-pencil"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger" onclick="delete_project({{ project.id }})"><i class="fa fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr id="edit_project_tr{{ project.id }}" style="display:none">
+                            <th><input id="edit_input_name" name="edit_name" type="text" class="form-control" value="{{ project.name }}"></th>
+                            <th>{{ project.created }}</th>
+                            <th><input id="edit_input_owner" name="edit_owner" type="text" class="form-control" value="{{ project.owner }}"></th>
+                            <td>
+                                <div class="btn-group">
+                                    <button type="button" class="btn btn-warning" onclick="edit_project_complete({{ project.id }})"><i class="fa fa-pencil"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                <div class="row">
+                    <div class="col-sm-5">
+                        <div class="dataTables_info" id="project_info" role="status" aria-live="polite">Showing 1 to 10 of 57 entries</div>
+                    </div>
+                    <div class="col-sm-7">
+                        <div class="dataTables_paginate paging_simple_numbers" id="project_paginate">
+                            <ul class="pagination">
+                                <li class="paginate_button previous disabled" id="project_previous">
+                                    <a href="#" aria-controls="pages" data-dt-idx="0" tabindex="0">Previous</a>
+                                </li>
+                                {% for page in pages %}
+                                    <li class="paginate_button {% if page.active == 1 %} active {% endif %}">
+                                        <a href="#" aria-controls="page{{ page.index }}" data-dt-idx="{{ page.index }}" tabindex="0">{{ page.index }}</a>
+                                    </li>
+                                {% endfor %}
+                                <li class="paginate_button next" id="project_next">
+                                    <a href="#" aria-controls="project" data-dt-idx="0" tabindex="0">Next</a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- /.box-body -->
+    </div>
+
+    <script id="tpl-project" type="text/html">
+        <tr id="project_tr<%= id %>" onclick="click_project({{ project.id }})">
+            <th><a href="/project/6"><%= name %></a>
+            </th>
+            <th><%= created %></th>
+            <th><%= owner %></th>
+            <td>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-warning" onclick="change_project(<%= id %>)"><i class="fa fa-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger" onclick="delete_project(<%= id %>)"><i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+        <tr id="edit_project_tr<%= id %>" style="display:none">
+            <th><input id="edit_input_name" name="edit_name" type="text" class="form-control" value="<%= name %>"></th>
+            <th><%= created %></th>
+            <th><input id="edit_input_owner" name="edit_owner" type="text" class="form-control" value="<%= owner %>"></th>
+            <td>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-warning" onclick="edit_project_complete(<%= id %>)"><i class="fa fa-pencil"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </script>
+
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static "plugins/datatables/dataTables.bootstrap.css" %}">
+    <script src="{% static "plugins/echarts/echarts.min.js" %}"></script>
+    <script src="{% static "plugins/echarts/macarons.js" %}"></script>
+    <!-- DataTables -->
+    <script src="{% static "plugins/datatables/jquery.dataTables.min.js" %}"></script>
+    <script src="{% static "plugins/datatables/dataTables.bootstrap.min.js" %}"></script>
+    <!-- SlimScroll -->
+    <script src="{% static "plugins/slimScroll/jquery.slimscroll.min.js" %}"></script>
+    <!-- FastClick -->
+    <script src="{% static "plugins/fastclick/fastclick.js" %}"></script>
+    <script src="{% static "plugins/art-template-master/lib/template-web.js" %}"></script>
+    <script src="{% static "plugins/datepicker/bootstrap-datepicker.js" %}"></script>
+    <script>
+        $('#menu_dashboard').addClass('active');
+        $('#menu_service').removeClass('active');
+        $('#page_header').text('项目列表');
+        $('#page_header_descript').text('所有项目列表');
+        $('#page_nav').text('项目管理');
+        $('#page_name').text('项目列表');
+        $('.datepicker').datepicker({
+            format: 'yyyy-mm-dd'
+            }
+        );
+
+        function click_project(project_id) {
+{#            alert('点击了项目' + project_id);#}
+            top.location = '/project/' + project_id + '/'
+        }
+
+        function add_project() {
+            var name = $('#add_name').val();
+            var created = $('#add_created').val();
+            var owner = $('#add_owner').val();
+            var data = {
+                name: name,
+                created: created,
+                owner: owner
+            };
+            if (name && created && owner) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'create_project',
+                    data: data,
+                    success: function (p) {
+                        var response = JSON.parse(p);
+                        console.log(response);
+                        if (response.flag == "Success") {
+{#                            alert("添加成功！");#}
+                            var data = {
+                                id: response.id,
+                                name: name,
+                                created: created,
+                                owner: owner
+                            };
+                            var add_html = template('tpl-project', data);
+                            $('#project_table').find('tbody').append(add_html)
+
+                        } else if (response.flag == "Error") {
+{#                            alert('添加失败！错误：' + p.context);#}
+
+                        }
+                    },
+                    error: function (e) {
+{#                        alert('添加失败!' + name + created + owner);#}
+
+                    }
+                })
+            } else {
+{#                alert('请输入完整信息！');#}
+            }
+
+        }
+        function delete_project(project_id) {
+{#            alert('点击了删除');#}
+            jQuery.ajax({
+                type: 'post',
+                url: 'delete_project',
+                data: {'project_id': project_id},
+                success: function (p) {
+                    var response = JSON.parse(p);
+                    console.log(response);
+                    if (response.flag == "Success") {
+{#                        alert("删除成功！");#}
+                        $('#project_tr' + project_id).remove()
+                        $('#edit_project_tr' + project_id).remove()
+                    } else if (response.flag == "Error") {
+{#                        alert('删除失败！错误：' + response.flag);#}
+                    }
+                },
+                error: function (e) {
+{#                    alert('删除失败!' + name + created + owner);#}
+
+                }
+            });
+            event.stopPropagation();
+        }
+        function change_project(project_id) {
+{#            alert('点击了修改' + project_id);#}
+
+            $('#project_tr' + project_id).hide();
+            $('#edit_project_tr' + project_id).show();
+
+            event.stopPropagation();
+        }
+        function edit_project_complete(project_id) {
+            var edit_project_tr = $('#edit_project_tr' + project_id);
+            var name = edit_project_tr.find('#edit_input_name').last().val();
+            var owner = edit_project_tr.find('#edit_input_owner').last().val();
+{#            alert('点击了完成' + name + owner);#}
+            var data = {
+                id: project_id,
+                name: name,
+                owner: owner
+            };
+            jQuery.ajax({
+                type: 'post',
+                url: 'change_project',
+                data: data,
+                success: function (p) {
+                    var response = JSON.parse(p);
+                    console.log(response);
+                    if (response.flag == "Success") {
+{#                        alert("修改成功！");#}
+                        var project_tr = $('#project_tr' + project_id);
+                        project_tr.find('a')[0].innerHTML = name;
+                        project_tr.find('th')[2].innerHTML = owner;
+                    } else if (response.flag == "Error") {
+{#                        alert('修改失败！错误：' + response.flag);#}
+                    }
+                },
+                error: function (e) {
+{#                    alert('修改失败!' + name + created + owner);#}
+                }
+            });
+
+            $('#project_tr' + project_id).show();
+            edit_project_tr.hide();
+
+            event.stopPropagation();
+        }
+    </script>
+{% endblock %}

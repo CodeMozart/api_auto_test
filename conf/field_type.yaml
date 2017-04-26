@@ -1,0 +1,7 @@
+Type:
+  str: str_default_validate
+  int: int_default_validate
+  float: float_default_validate
+  bool: bool_default_validate
+  list: list_default_validate
+  dict: dict_default_validate

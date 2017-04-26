@@ -1,0 +1,1586 @@
+{% extends "base.html" %} {% block content %} {% load custom_filter %}
+
+
+        <div class="row">
+            <div class="col-md-12">
+                <!-- Custom Tabs -->
+                <div class="nav-tabs-custom">
+                    <ul class="nav nav-tabs">
+                        <li class="active"><a href="#tab_1" data-toggle="tab">基本信息</a></li>
+                        <li><a href="#tab_2" data-toggle="tab">请求</a></li>
+                        <li><a href="#tab_3" data-toggle="tab">响应</a></li>
+
+                        <li class="pull-right"><a href="#" class="text-muted" data-toggle="modal"
+                                                  id="api_base_modify"
+                                                  data-target="#modifyApiBaseModal"
+                                                  onclick="modal_api_base_window(this)"
+                                                  ><i class="fa fa-gear"></i></a>
+                        </li>
+                    </ul>
+                    <div class="tab-content">
+                        <div class="tab-pane active" id="tab_1">
+
+                            <!-- /.box-header -->
+                            <div class="box-body no-padding" style="display: inline">
+                                <table class="table table-condensed" width="50%">
+                                    <tr>
+                                        <th>名称：</th>
+                                        <td id="api_base_name">{{ api_info.name }}</td>
+                                        <th>描述：</th>
+                                        <td id="api_base_desc">{{ api_info.description }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>请求方法：</th>
+                                        <td id="api_base_request_method">{{ api_info.method }}</td>
+                                        <th>请求超时(秒)：</th>
+                                        <td id="api_base_overtime">{{ api_info.overtime }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>URL：</th>
+                                        <td id="api_base_url">{{ api_info.url }}</td>
+                                        <th>验证器：</th>
+                                        <td id="api_base_validate_method">{{ api_info.validate_method }}</td>
+                                    </tr>
+                                    <tr>
+                                        <th>场景：</th>
+                                        <td id="api_base_scene">{{ api_info.scene }}</td>
+                                        <th>最近修改：</th>
+                                        <td id="api_base_modify_recently">{{ api_info.modify_recently }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                        <!-- /.tab-pane -->
+                        <div class="tab-pane" id="tab_2">
+                            <h3 class="box-title">请求参数配置</h3>
+
+                            <table id="add_request_param" class="table table-bordered table-hover dataTable"
+                                   role="grid">
+                                <tr>
+                                    <th>
+                                        <input id="add_name" name="name" type="text" class="form-control"
+                                               placeholder="名">
+                                    </th>
+                                    <th>
+                                        <input id="add_type" name="type" type="text" class="form-control"
+                                               placeholder="参数类型">
+                                    </th>
+                                    <th>
+                                        <input id="add_position" name="position" type="text" class="form-control"
+                                               placeholder="参数位置">
+                                    </th>
+                                    <th>
+                                        <input id="add_value" name="value" type="text" class="form-control"
+                                               placeholder="值">
+                                    </th>
+                                    <th>
+                                        <input id="add_url_encode" name="url_encode" type="text" class="form-control"
+                                               placeholder="URL编码">
+                                    </th>
+                                    <th>
+                                        <input type="submit" value="添加" onclick="add_request_param()">
+                                    </th>
+                                </tr>
+                            </table>
+                            <div class="box-body">
+                                <div class="col-sm-12">
+                                    <table id="request_param_table" class="table table-bordered table-hover dataTable"
+                                           role="grid">
+                                        <thead>
+                                        <tr>
+                                            <th id="">名</th>
+                                            <th id="">参数类型</th>
+                                            <th id="">参数位置</th>
+                                            <th id="">值</th>
+                                            <th id="">URL编码</th>
+                                        </tr>
+                                        </thead>
+
+                                        <tbody>
+                                        {% for item in param_list %}
+                                            <tr id="param_id_{{ item.id }}">
+                                                <th id="param_tr_key_{{ item.id }}">{{ item.key }}</th>
+                                                <th id="param_tr_type_{{ item.id }}">{{ item.type }}</th>
+                                                <th id="param_tr_position_{{ item.id }}">{{ item.position }}</th>
+                                                <th id="param_tr_value_{{ item.id }}">{{ item.value }}</th>
+                                                <th id="param_tr_encode_{{ item.id }}">{{ item.url_encode }}</th>
+                                                <th id="delete_button">
+                                                    <button id="param_modify" onclick="modal_param_window(this)" data-target="#paramModal"
+                                                            data-toggle="modal"
+                                                            value="{{ item.id }}">
+                                                        修改
+                                                    </button>
+                                                    <button id="param_delete" onclick="modal_param_window(this)" data-target="#paramModal"
+                                                            data-toggle="modal"
+                                                            value="{{ item.id }}">
+                                                        删除
+                                                    </button>
+                                                </th>
+                                            </tr>y
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- /.tab-pane -->
+
+                            <section class="tab-pane" id="tab_3">
+                                <div class="box-header">
+                                    <h3 class="box-title">Response Header</h3>
+                                    <div class="pull-right box-tools">
+                                        <button type="button" class="btn btn-success" data-toggle="modal"
+                                                data-target="#createResponseHeaderModal" id="resp_header_add"
+                                                onclick="modal_resp_header_window(this)">
+                                            <i class="fa fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body table-responsive">
+                                    <table class="table table-bordered" id="resp_header_table">
+                                        <thead>
+                                        <tr>
+                                            <th>Key</th>
+                                            <th>Value</th>
+                                            <th>操作</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for resp_header in resp_header_list %}
+                                            <tr id="resp_header_id_{{ resp_header.id }}">
+                                                <td id="resp_header_key_{{ resp_header.id }}">{{ resp_header.key }}</td>
+                                                <td id="resp_header_value_{{ resp_header.id }}">{{ resp_header.value }}</td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <button onclick="modal_resp_header_window(this)" type="button"
+                                                                class="btn btn-warning" data-toggle="modal"
+                                                                id="resp_header_modify"
+                                                                data-target="#createResponseHeaderModal"
+                                                                value="{{ resp_header.id }}">
+                                                            <i class="fa fa-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-danger" data-toggle="modal"
+                                                                id="resp_header_delete"
+                                                                data-target="#createResponseHeaderModal"
+                                                                value="{{ resp_header.id }}"
+                                                                onclick="modal_resp_header_window(this)">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- /.box-body -->
+
+                                <div class="box-header">
+                                    <h3 class="box-title">Response Body</h3>
+                                    <div class="pull-right box-tools">
+                                        <button type="button" class="btn btn-success" data-toggle="modal"
+                                                data-target="#createResponseBodyModal" id="resp_body_add"
+                                                onclick="modal_resp_body_window(this)">
+                                            <i class="fa fa-plus"></i></button>
+                                    </div>
+                                </div>
+                                <!-- /.box-header -->
+                                <div class="box-body table-responsive">
+                                    <table class="table table-bordered" id="resp_body_table">
+                                        <thead>
+                                        <tr>
+                                            <th>Key</th>
+                                            <th>路径</th>
+                                            <th>类型</th>
+                                            <th>类型验证参数</th>
+                                            <th>操作</th>
+                                        </tr>
+                                        </thead>
+                                        <tbody>
+                                        {% for resp_body in resp_body_list %}
+                                            <tr id="resp_body_id_{{ resp_body.id }}">
+                                                <td id="resp_body_key_{{ resp_body.id }}">{{ resp_body.key }}</td>
+                                                <td id="resp_body_path_{{ resp_body.id }}">{{ resp_body.path }}</td>
+                                                <td id="resp_body_type_{{ resp_body.id }}">{{ resp_body.type }}</td>
+                                                <td id="resp_body_type_rule_{{ resp_body.id }}">{{ resp_body.type_rule }}</td>
+                                                <td>
+                                                    <div class="btn-group">
+                                                        <button onclick="modal_resp_body_window(this)" type="button"
+                                                                class="btn btn-warning" data-toggle="modal"
+                                                                id="resp_body_modify"
+                                                                data-target="#createResponseBodyModal"
+                                                                value="{{ resp_body.id }}">
+                                                            <i class="fa fa-pencil"></i>
+                                                        </button>
+                                                        <button type="button" class="btn btn-danger" data-toggle="modal"
+                                                                id="resp_body_delete"
+                                                                data-target="#createResponseBodyModal"
+                                                                value="{{ resp_body.id }}"
+                                                                onclick="modal_resp_body_window(this)">
+                                                            <i class="fa fa-trash"></i>
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </section>
+
+                        <!-- /.tab-pane -->
+                    </div>
+                    <!-- /.tab-content -->
+                </div>
+                <!-- nav-tabs-custom -->
+            </div>
+        </div>
+
+
+    <div class="row">
+        <div class="box-header">
+            <h3 class="box-title">用例列表</h3>
+            <div class="pull-right box-tools">
+                <button type="button" class="btn btn-success" data-toggle="modal"
+                        id="api_test_add"
+                        data-target="#createApiTestModal"
+                        onclick="modal_api_test_window(this)">
+                    <i class="fa fa-plus"></i></button>
+            </div>
+        </div>
+        <!-- /.box-header -->
+        <div class="box-body">
+            <table id="api_test_table" class="table table-bordered table-striped">
+                <thead>
+                <tr>
+                    <th>名称    </th>
+                    <th>参数    </th>
+                    <th>PostData</th>
+                    <th>验证方法</th>
+                    <th>任务类型</th>
+                    <th>总运行次数</th>
+                    <th>成功次数</th>
+                    <th>失败次数</th>
+                    <th>当次运行结果</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for api_test in api_test_list %}
+                    <tr id="api_test_id_{{ api_test.id }}">
+                        <td id="api_test_name_{{ api_test.id }}">{{ api_test.name }}</td>
+                        <td id="api_test_param_{{ api_test.id }}">{{ api_test.param }}</td>
+                        <td id="api_test_data_{{ api_test.id }}">{{ api_test.post_data }}</td>
+                        <td id="api_test_method_{{ api_test.id }}">{{ api_test.test_method }}</td>
+                        <td id="api_test_task_type_{{ api_test.id }}">{{ api_test.task_type }}</td>
+                        <td id="api_test_total_run_{{ api_test.id }}">{{ api_test.total_run }}</td>
+                        <td id="api_test_success_run_{{ api_test.id }}">{{ api_test.success_run }}</td>
+                        <td id="api_test_fail_run_{{ api_test.id }}">{{ api_test.fail_run }}</td>
+                        <td id="api_test_status_{{ api_test.id }}">{{ api_test.status }}</td>
+                        <td>
+                            <div class="btn-group">
+                                <button id="api_test_run" type="button" class="btn btn-info"
+                                        onclick="execute_api_test(value)"
+                                        value="{{ api_test.id }}">
+                                    运行
+                                </button>
+                                <button id="api_test_modify" type="button" class="btn btn-warning" data-toggle="modal"
+                                        data-target="#createApiTestModal"
+                                        onclick="modal_api_test_window(this)"
+                                        value="{{ api_test.id }}">
+                                    修改
+                                </button>
+                                <button id="api_test_delete" type="button" class="btn btn-danger" data-toggle="modal"
+                                        data-target="#createApiTestModal"
+                                        onclick="modal_api_test_window(this)"
+                                        value="{{ api_test.id }}">
+                                    删除
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <!-- /.box-body -->
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="createResponseHeaderModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+
+            <div class="box box-success box-solid">
+                <div class="box-header">
+                    <h3 class="box-title" id="header_modal_title">添加 Header</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <input type="hidden" name="modal_resp_header_id" id="modal_resp_header_id" value="{{ id }}">
+                    <div class="form-group">
+                        <label for="config_name">键</label>
+                        <input type="text" class="form-control" name="modal_resp_header_key" placeholder="key"
+                               id="modal_resp_header_key" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="base_url">值</label>
+                        <input type="text" class="form-control" name="modal_resp_header_value"
+                               id="modal_resp_header_value" placeholder="value"
+                               required>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary" id="response_header_modal_button"
+                            onclick="handle_resp_header_action(this)">添加
+                    </button>
+                </div>
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="paramModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-success box-solid">
+                <div class="box-header">
+                    <h3 class="box-title" id="param_modal_title">确认删除参数</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body">
+                    <input type="hidden" name="param_id" id="modal_line_id">
+                    <div class="form-group">
+                        <label for="config_name">名</label>
+                        <input type="text" class="form-control" id="modal_line_key" title="name">
+                    </div>
+                    <div class="form-group">
+                        <label for="base_url">参数类型</label>
+                        <input type="text" class="form-control" id="modal_line_type" title="type">
+                    </div>
+                    <div class="form-group">
+                        <label for="common_params">参数位置</label>
+                        <input type="text" class="form-control" id="modal_line_position" title="position">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">值</label>
+                        <input type="text" class="form-control" id="modal_line_value" title="value">
+                    </div>
+                    <div class="form-group">
+                        <label for="description">URL编码</label>
+                        <input type="text" class="form-control" id="modal_line_encode" title="encode">
+                    </div>
+                </div>
+                <!-- /.box-body -->
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary" id="request_modal_button"
+                            onclick="change_request_param(this)"></button>
+                </div>
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="createResponseBodyModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-success box-solid">
+                <div class="box-header">
+                    <h3 class="box-title" id="body_modal_title">添加</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+
+                <div class="box-body">
+                    <input type="hidden" name="modal_resp_body_id" id="modal_resp_body_id" value="{{ id }}">
+                    <div class="form-group">
+                        <label for="config_name">Key</label>
+                        <input type="text" class="form-control" name="modal_resp_body_key" placeholder="key"
+                               id="modal_resp_body_key" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="base_url">路径</label>
+                        <input type="text" class="form-control" name="modal_resp_body_value"
+                               id="modal_resp_body_path" placeholder="path"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_resp_body_type" >类型</label>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" name="select_type" id="modal_resp_body_type">
+                            {% for type in key_type_list %}
+                            <option id="resp_body_type_{{ type.id }}" value="{{ type.short }}">{{ type.short }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="base_url">类型验证参数</label>
+                        <input type="text" class="form-control" name="modal_resp_body_type_rule"
+                               id="modal_resp_body_type_rule" placeholder="rule"
+                               required>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary" id="response_body_modal_button"
+                            onclick="handle_resp_body_action(this)">添加
+                    </button>
+                </div>
+
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="createApiTestModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-success box-solid">
+                <div class="box-header">
+                    <h3 class="box-title" id="api_test_modal_title">添加</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+
+                <div class="box-body">
+                    <input type="hidden" name="modal_api_test_id" id="modal_api_test_id" value="{{ id }}">
+                    <div class="form-group">
+                        <label for="config_name">名称</label>
+                        <input type="text" class="form-control" name="modal_api_test_key" placeholder="name"
+                               id="modal_api_test_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="base_url">参数</label>
+                        <input type="text" class="form-control" name="modal_api_test_value"
+                               id="modal_api_test_param" placeholder="param"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="base_url">PostData</label>
+                        <input type="text" class="form-control" name="modal_api_test_value"
+                               id="modal_api_test_data" placeholder="post_data"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_api_test_method">验证器</label>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" name="select_method"
+                                id="modal_api_test_method">
+                            {% for method in api_test_method_list %}
+                                <option id="api_test_method_{{ type.id }}"
+                                        value="{{ method.name }}">{{ method.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_api_test_task_type">任务类型</label>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" name="modal_api_test_task_type" id="modal_api_test_task_type">
+                            {% for task_type in api_test_task_type_list %}
+                                <option value="{{ task_type.name }}">{{ task_type.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <!-- /.box-body -->
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary" id="api_test_modal_button"
+                            onclick="handle_api_test_action(this)">添加</button>
+                </div>
+
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="modifyApiBaseModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-success box-solid">
+
+                <div class="box-header">
+                    <h3 class="box-title" id="api_base_modal_title">修改基本信息</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+
+                <div class="box-body">
+                    <input type="hidden" name="modal_api_base_id" id="modal_api_base_id" value="{{ id }}">
+                    <div class="form-group">
+                        <label for="config_name">名称</label>
+                        <input type="text" class="form-control" name="modal_api_base_name" placeholder="name"
+                               id="modal_api_base_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="base_url">请求方法</label>
+                        <input type="text" class="form-control" name="modal_api_base_request_method"
+                               id="modal_api_base_request_method" placeholder="method"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="base_url">URL</label>
+                        <input type="text" class="form-control" name="modal_api_base_url" placeholder="url"
+                               id="modal_api_base_url" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="select_scene">场景</label>
+                        <input type="text" class="form-control" name="modal_api_base_scene"
+                               id="modal_api_base_scene" placeholder="scene"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label>描述</label>
+                        <input type="text" class="form-control" name="modal_api_base_desc"
+                               id="modal_api_base_desc" placeholder="description"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label>超时时间</label>
+                        <input type="text" class="form-control" name="modal_api_base_overtime"
+                               id="modal_api_base_overtime" placeholder="overtime"
+                               required>
+                    </div>
+                    <div class="form-group">
+                        <label for="modal_api_base_validate_method">验证器</label>
+                    </div>
+                    <div class="form-group">
+                        <select class="form-control" name="select_validate_method"
+                                id="modal_api_base_validate_method">
+                            {% for method in api_test_method_list %}
+                                <option id="api_base_validate_method_{{ type.id }}"
+                                        value="{{ method.name }}">{{ method.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                </div>
+                <!-- /.box-body -->
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary" id="api_base_modal_button"
+                            onclick="handle_api_base_action(this)">保存
+                    </button>
+                </div>
+
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    <script id="tpl-project" type="text/html">
+        <tr id="param_id_<%= param_id %>">
+            <td id="param_tr_key_<%= param_id %>"><%= name %></td>
+            <td id="param_tr_type_<%= param_id %>"><%= type %></td>
+            <td id="param_tr_position_<%= param_id %>"><%= position %></td>
+            <td id="param_tr_value_<%= param_id %>"><%= value %></td>
+            <td id="param_tr_url_encode_<%= param_id %>"><%= url_encode %></td>
+            <td id="delete_button">
+                <button id="param_modify" onclick="modal_param_window(this)" data-target="#paramModal" data-toggle="modal"
+                        value="<%= param_id %>">
+                    修改
+                </button>
+                <button id="param_delete" onclick="modal_param_window(this)" data-target="#paramModal" data-toggle="modal"
+                        value="<%= param_id %>">
+                    删除
+                </button>
+            </td>
+        </tr>
+    </script>
+
+    <script id="tpl-project-resp-header" type="text/html">
+        <tr id="resp_header_id_<%= header_id %>">
+            <td id="resp_header_key_<%= header_id %>"><%= key %></td>
+            <td id="resp_header_value_<%= header_id %>"><%= value %></td>
+            <td>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-warning" data-toggle="modal" id="resp_header_modify"
+                            data-target="#createResponseHeaderModal"
+                            value="<%= header_id %>"
+                            onclick="modal_resp_header_window(this)">
+                        <i class="fa fa-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" id="resp_header_delete"
+                            data-target="#createResponseHeaderModal"
+                            value="<%= header_id %>"
+                            onclick="modal_resp_header_window(this)">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </script>
+
+    <script id="tpl-project-resp-body" type="text/html">
+        <tr id="resp_body_id_<%= body_id %>">
+            <td id="resp_body_key_<%= body_id %>"><%= key %></td>
+            <td id="resp_body_path_<%= body_id %>"><%= path %></td>
+            <td id="resp_body_type_<%= body_id %>"><%= type %></td>
+            <td id="resp_body_type_rule_<%= body_id %>"><%= type_rule %></td>
+            <td>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-warning" data-toggle="modal" id="resp_body_modify"
+                            data-target="#createResponseBodyModal"
+                            value="<%= body_id %>"
+                            onclick="modal_resp_body_window(this)">
+                        <i class="fa fa-pencil"></i>
+                    </button>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" id="resp_body_delete"
+                            data-target="#createResponseBodyModal"
+                            value="<%= body_id %>"
+                            onclick="modal_resp_body_window(this)">
+                        <i class="fa fa-trash"></i>
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </script>
+
+    <script id="tpl-project-api-test" type="text/html">
+        <tr id="api_test_id_<%= api_test_id %>">
+            <td id="api_test_name_<%= api_test_id %>"><%= name %></td>
+            <td id="api_test_path_<%= api_test_id %>"><%= param %></td>
+            <td id="api_test_data_<%= api_test_id %>"><%= post_data %></td>
+            <td id="api_test_type_<%= api_test_id %>"><%= method %></td>
+            <td id="api_test_type_rule_<%= api_test_id %>"><%= task_type %></td>
+            <td id="api_test_total_run_<%= api_test_id %>">0</td>
+            <td id="api_test_success_run_<%= api_test_id %>">0</td>
+            <td id="api_test_fail_run_<%= api_test_id %>">0</td>
+            <td id="api_test_status_<%= api_test_id %>"></td>
+            <td>
+                <div class="btn-group">
+                    <button id="api_test_run" type="button" class="btn btn-info"
+                            value="{{ api_test.id }}">
+                        运行
+                    </button>
+                    <button type="button" class="btn btn-warning" data-toggle="modal" id="api_test_modify"
+                            data-target="#createApiTestModal"
+                            value="<%= api_test_id %>"
+                            onclick="modal_api_test_window(this)">
+                        修改
+                    </button>
+                    <button type="button" class="btn btn-danger" data-toggle="modal" id="api_test_delete"
+                            data-target="#createApiTestModal"
+                            value="<%= api_test_id %>"
+                            onclick="modal_api_test_window(this)">
+                        删除
+                    </button>
+                </div>
+            </td>
+        </tr>
+    </script>
+
+
+    {% load staticfiles %}
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{% static "plugins/datatables/dataTables.bootstrap.css" %}">
+    <script src="{% static "plugins/echarts/echarts.min.js" %}"></script>
+    <script src="{% static "plugins/echarts/macarons.js" %}"></script>
+    <!-- DataTables -->
+    <script src="{% static "plugins/datatables/jquery.dataTables.min.js" %}"></script>
+    <script src="{% static "plugins/datatables/dataTables.bootstrap.min.js" %}"></script>
+    <!-- SlimScroll -->
+    <script src="{% static "plugins/slimScroll/jquery.slimscroll.min.js" %}"></script>
+    <!-- FastClick -->
+    <script src="{% static "plugins/fastclick/fastclick.js" %}"></script>
+    <script src="{% static "plugins/art-template-master/lib/template-web.js" %}"></script>
+
+    <script>
+        $('#menu_dashboard').removeClass('active');
+        $('#menu_project_6').addClass('active');
+        $('#page_header').text('{{ name }}');
+        $('#page_header_descript').text('ID:' + '{{ api_id }}').val({{ api_id }});
+        $('#page_nav').text('项目');
+        $('#page_name').text('API详情');
+        $('#example1').DataTable({
+            "paging": true,
+            "lengthChange": false,
+            "searching": false,
+            "ordering": false,
+            "info": true,
+            "autoWidth": true
+        });
+
+
+        function modal_api_base_window(obj) {
+{#            console.log($(obj));#}
+
+            var name = $('#api_base_name').text();
+            var request_method = $('#api_base_request_method').text();
+            var url = $('#api_base_url').text();
+            var scene = $('#api_base_scene').text();
+            var desc = $('#api_base_desc').text();
+            var overtime = $('#api_base_overtime').text();
+            var validate_method = $('#api_base_validate_method').text();
+
+            $('#modal_api_base_name').val(name).attr('required');
+            $('#modal_api_base_request_method').val(request_method).attr('required');
+            $('#modal_api_base_url').val(url).attr('required');
+            $('#modal_api_base_scene').val(scene).attr('required');
+            $('#modal_api_base_desc').val(desc).attr('required');
+            $('#modal_api_base_overtime').val(overtime).attr('required');
+            var select = document.getElementById("modal_api_base_validate_method");
+            for (var i = 0; i < select.options.length; i++) {
+                if (select.options[i].innerHTML == validate_method) {
+                    select.options[i].selected = true;
+                    break;
+                }
+            }
+        }
+
+        function handle_api_base_action(obj) {
+
+
+            var name = $('#modal_api_base_name').val();
+            var request_method = $('#modal_api_base_request_method').val();
+            var url = $('#modal_api_base_url').val();
+            var scene = $('#modal_api_base_scene').val();
+            var desc = $('#modal_api_base_desc').val();
+            var overtime = $('#modal_api_base_overtime').val();
+            var validate_method = $('#modal_api_base_validate_method').val();
+            var api_id = $('#page_header_descript').val();
+
+            var data = {
+                    name : name,
+                    request_method : request_method,
+                    url : url,
+                    scene : scene,
+                    desc : desc,
+                    overtime : overtime,
+                    validate_method : validate_method,
+                    api_id : api_id
+            };
+
+{#            console.log(data);#}
+
+            modify_api_base_info(data, api_id)
+
+        }
+
+        function modify_api_base_info(data) {
+
+            if (data.name && data.request_method && data.url && data.scene && data.desc && data.overtime && data.validate_method) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'change_api_base_info/',
+                    data: data,
+                    success: function (p) {
+
+                        resp = JSON.parse(p);
+
+                        modify_recently = resp.modify_recently;
+
+                        if (resp.flag == "Error") {
+                            alert('添加失败！错误：' + p.context)
+                        }
+                        else {
+                            $('#api_base_name').text(data.name);
+                            $('#api_base_request_method').text(data.request_method);
+                            $('#api_base_url').text(data.url);
+                            $('#api_base_scene').text(data.scene);
+                            $('#api_base_desc').text(data.desc);
+                            $('#api_base_overtime').text(data.overtime);
+                            $('#api_base_validate_method').text(data.validate_method);
+                            $('#api_base_modify_recently').text(modify_recently);
+                            $('#modifyApiBaseModal').modal('hide');
+                        }
+                    },
+                    error: function (e) {
+                        alert('添加失败!' + name + e)
+
+                    }
+                })
+            } else {
+                alert('请输入完整信息！')
+            }
+        }
+
+{#        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------#}
+        function modal_api_test_window(obj) {
+
+{#            console.log($(obj).attr('id'));#}
+
+            var from_id = $(obj).attr('id');
+            var api_test_id = $(obj).attr("value");
+            var name = $('#api_test_name_' + api_test_id).text();
+            var param = $('#api_test_param_' + api_test_id).text();
+            var post_data = $('#api_test_data_' + api_test_id).text();
+            var method = $('#api_test_method_' + api_test_id).text();
+            var task_type = $('#api_test_task_type_' + api_test_id).text();
+
+
+            if (from_id == 'api_test_modify') {
+
+                $('#api_test_modal_button').text('保存');
+                $('#modal_api_test_name').val(name).removeAttr('readOnly').attr('required');
+                $('#modal_api_test_param').val(param).removeAttr('readOnly').attr('required');
+                $('#modal_api_test_data').val(post_data).removeAttr('readOnly').attr('required');
+                $('#modal_api_test_method').val('').removeAttr('disabled').attr('required');
+                $('#modal_api_test_task_type').val('').removeAttr('disabled').attr('required');
+
+                var select = document.getElementById("modal_api_test_method");
+                for (var i = 0; i < select.options.length; i++) {
+                    if (select.options[i].innerHTML == method) {
+                        select.options[i].selected = true;
+                        break;
+                    }
+                }
+
+                var task_type_select = document.getElementById("modal_api_test_task_type");
+                for (var j = 0; j < task_type_select.options.length; j++) {
+                    if (task_type_select.options[j].innerHTML == task_type) {
+                        task_type_select.options[j].selected = true;
+                        break;
+                    }
+                }
+
+                $('#modal_api_test_id').val(api_test_id);
+                $('#api_test_modal_title').text('修改');
+
+            }
+            else if (from_id == 'api_test_add') {
+
+                $('#api_test_modal_button').text('添加');
+                $('#modal_api_test_name').val('').removeAttr('readOnly').attr('required');
+                $('#modal_api_test_param').val('').removeAttr('readOnly').attr('required');
+                $('#modal_api_test_data').val('').removeAttr('readOnly').attr('required');
+                $('#modal_api_test_method').val('').removeAttr('disabled').attr('required');
+                $('#modal_api_test_task_type').val('').removeAttr('disabled').attr('required');
+                $('#api_test_modal_title').text('添加');
+            }
+            else {
+
+                $('#api_test_modal_button').text('删除');
+                $('#modal_api_test_name').val(name).attr('readOnly', 'true');
+                $('#modal_api_test_param').val(param).attr('readOnly', 'true');
+                $('#modal_api_test_data').val(post_data).attr('readOnly', 'true');
+                $('#modal_api_test_method').val(method).attr('disabled', 'true');
+                $('#modal_api_test_task_type').val(task_type).attr('disabled', 'true');
+                $('#modal_api_test_id').val(api_test_id);
+                $('#api_test_modal_title').text('确认删除');
+            }
+
+        }
+
+        function delete_api_test(api_test_id) {
+{#            console.log(api_test_id);#}
+            jQuery.ajax({
+                type: 'post',
+                url: 'delete_api_test/',
+                data: {'api_test_id': api_test_id},
+
+                success: function (p) {
+
+{#                    console.log(p);#}
+
+                    if (p.flag == "Error") {
+                        alert('操作失败！错误：' + p.context)
+                    }
+                    else {
+                        $('#api_test_id_' + api_test_id).remove();
+                        $('#createApiTestModal').modal('hide');
+                    }
+
+                },
+
+                error: function (e) {
+{#                    console.log(e)#}
+                }
+            })
+        }
+
+        function handle_api_test_action(obj) {
+{#            console.log(obj);#}
+
+            var method_str = $(obj).text();
+            var api_test_id = $('#modal_api_test_id').val();
+
+            if (method_str == '保存') {
+
+{#                console.log('save action');#}
+
+                var name = $('#modal_api_test_name').val();
+                var param = $('#modal_api_test_param').val();
+                var method = $('#modal_api_test_method').val();
+                var task_type = $('#modal_api_test_task_type').val();
+                var post_data = $('#modal_api_test_data').val();
+
+                var data = {
+                    'name': name,
+                    'param': param,
+                    'method': method,
+                    'post_data': post_data,
+                    'task_type': task_type,
+                    'api_test_id':api_test_id
+                };
+
+                modify_api_test(data, api_test_id);
+
+            }
+            else if (method_str == '添加') {
+                add_api_test();
+            }
+            else {
+                delete_api_test(api_test_id)
+            }
+
+        }
+
+        function modify_api_test(data, api_test_id) {
+
+            if (data.name && data.param && data.task_type && data.method) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'change_api_test/',
+                    data: data,
+                    success: function (p) {
+
+                        resp = JSON.parse(p);
+
+                        if (resp.flag == "Error") {
+                            alert('添加失败！错误：' + p.context)
+                        }
+                        else {
+                            $('#api_test_name_' + api_test_id).text(data.name);
+                            $('#api_test_param_' + api_test_id).text(data.param);
+                            $('#api_test_data_' + api_test_id).text(data.post_data);
+                            $('#api_test_method_' + api_test_id).text(data.method);
+                            $('#api_test_task_type_' + api_test_id).text(data.task_type);
+
+                            $('#createApiTestModal').modal('hide');
+                        }
+                    },
+                    error: function (e) {
+                        alert('添加失败!' + name + e)
+
+                    }
+                })
+            } else {
+                alert('请输入完整信息！')
+            }
+        }
+
+        function add_api_test() {
+
+            var name = $('#modal_api_test_name').val();
+            var param = $('#modal_api_test_param').val();
+            var post_data = $('#modal_api_test_data').val();
+            var method = $('#modal_api_test_method').val();
+            var task_type = $('#modal_api_test_task_type').val();
+
+            var data = {
+                name: name,
+                param: param,
+                method: method,
+                task_type: task_type,
+                post_data: post_data
+            };
+
+{#            console.log(data);#}
+
+            if (name && param && method && task_type) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'add_api_test/',
+                    data: data,
+                    success: function (p) {
+
+                        var resp = JSON.parse(p);
+
+{#                        console.log(resp);#}
+                        var render_data = {
+                            name: name,
+                            param: param,
+                            method: method,
+                            task_type: task_type,
+                            post_data: post_data,
+                            api_test_id: resp.id
+                        };
+
+                        if (resp.flag == "Error") {
+                            alert('添加失败！错误：' + resp.context)
+                        }
+                        else {
+                            var add_html = template('tpl-project-api-test', render_data);
+                            $('#api_test_table').find('tbody').append(add_html);
+                            $('#createApiTestModal').modal('hide');
+                        }
+
+                    },
+                    error: function (e) {
+                        alert('添加失败!' + name + e)
+
+                    }
+                })
+            } else {
+                alert('请输入完整信息！')
+            }
+
+        }
+
+        function execute_api_test(obj) {
+
+            var api_id = $('#page_header_descript').val();
+            $('#api_test_status_' + obj).text('executeing...');
+
+            $.ajax({
+                url: 'execute_api_test',
+                type: 'GET',
+                data: {'testid': obj, 'apiid': api_id},
+                dataType: 'json',
+                success: function (ret) {
+{#                    console.log(ret);#}
+
+                    if (ret.status) {
+                        $('#api_test_status_' + obj).text('success!')
+                    }
+                    else {
+                        $('#api_test_status_' + obj).text(ret.msg)
+                    }
+
+                    $('#api_test_total_run_' + obj).text(ret.total_run);
+                    $('#api_test_success_run_' + obj).text(ret.success_run);
+                    $('#api_test_fail_run_' + obj).text(ret.fail_run)
+
+                }
+            })
+        }
+{#        --------------------------------------------------------------------------------------------------------------------------------------------------------------------------#}
+
+        function modal_resp_body_window(obj) {
+
+{#            console.log($(obj).attr('id'));#}
+
+            var from_id = $(obj).attr('id');
+            var body_id = $(obj).attr("value");
+            var key = $('#resp_body_key_' + body_id).text();
+            var path = $('#resp_body_path_' + body_id).text();
+            var type = $('#resp_body_type_' + body_id).text();
+            var type_rule = $('#resp_body_type_rule_' + body_id).text();
+
+            if (from_id == 'resp_body_modify') {
+
+                $('#response_body_modal_button').text('保存');
+                $('#modal_resp_body_key').val(key).removeAttr('readOnly').attr('required');
+                $('#modal_resp_body_path').val(path).removeAttr('readOnly').attr('required');
+                $('#modal_resp_body_type').val('').removeAttr('disabled').attr('required');
+                $('#modal_resp_body_type_rule').val(type_rule).removeAttr('disabled').attr('required');
+
+                var select = document.getElementById("modal_resp_body_type");
+                for (var i = 0; i < select.options.length; i++) {
+                    if (select.options[i].innerHTML == type) {
+                        select.options[i].selected = true;
+                        break;
+                    }
+                }
+
+                $('#modal_resp_body_id').val(body_id);
+                $('#body_modal_title').text('修改');
+
+            }
+            else if (from_id == 'resp_body_add') {
+
+                $('#response_body_modal_button').text('添加');
+                $('#modal_resp_body_key').val('').removeAttr('readOnly').attr('required');
+                $('#modal_resp_body_path').val('').removeAttr('readOnly').attr('required');
+                $('#modal_resp_body_type').val('').removeAttr('disabled').attr('required');
+                $('#modal_resp_body_type_rule').val('').removeAttr('disabled').attr('required');
+                $('#body_modal_title').text('添加');
+            }
+            else {
+
+                $('#response_body_modal_button').text('删除');
+                $('#modal_resp_body_key').val(key).attr('readOnly', 'true');
+                $('#modal_resp_body_path').val(path).attr('readOnly', 'true');
+                $('#modal_resp_body_type').val(type).attr('disabled', 'true');
+                $('#modal_resp_body_type_rule').val(type_rule).attr('disabled', 'true');
+                $('#modal_resp_body_id').val(body_id).attr('readOnly', 'true');
+                $('#body_modal_title').text('确认删除');
+            }
+
+        }
+
+        function delete_resp_body(body_id) {
+{#            console.log(body_id);#}
+            jQuery.ajax({
+                type: 'post',
+                url: 'delete_resp_body/',
+                data: {'body_id': body_id},
+
+                success: function (p) {
+
+{#                    console.log(p);#}
+
+                    if (p.flag == "Error") {
+                        alert('操作失败！错误：' + p.context)
+                    }
+                    else {
+                        $('#resp_body_id_' + body_id).remove();
+                        $('#createResponseBodyModal').modal('hide');
+                    }
+
+                },
+
+                error: function (e) {
+{#                    console.log(e)#}
+                }
+            })
+        }
+
+        function handle_resp_body_action(obj) {
+{#            console.log(obj);#}
+
+            method_str = $(obj).text();
+            body_id = $('#modal_resp_body_id').val();
+
+            if (method_str == '保存') {
+
+{#                console.log('save action');#}
+
+                key = $('#modal_resp_body_key').val();
+                path = $('#modal_resp_body_path').val();
+                type = $('#modal_resp_body_type').val();
+                type_rule = $('#modal_resp_body_type_rule').val();
+
+                var data = {
+                    'key': key,
+                    'path': path,
+                    'type': type,
+                    'type_rule': type_rule,
+                    'body_id':body_id
+                };
+
+                modify_resp_body(data, body_id);
+
+            }
+            else if (method_str == '添加') {
+                add_resp_body();
+            }
+            else {
+                delete_resp_body(body_id)
+            }
+
+        }
+
+        function modify_resp_body(data, body_id) {
+
+            if (data.key && data.path && data.type) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'change_resp_body/',
+                    data: data,
+                    success: function (p) {
+
+                        resp = JSON.parse(p);
+
+                        if (resp.flag == "Error") {
+                            alert('添加失败！错误：' + p.context)
+                        }
+                        else {
+                            $('#resp_body_key_' + body_id).text(data.key);
+                            $('#resp_body_path_' + body_id).text(data.path);
+                            $('#resp_body_type_' + body_id).text(data.type);
+                            $('#resp_body_type_rule_' + body_id).text(data.type_rule);
+                            $('#createResponseBodyModal').modal('hide');
+                        }
+                    },
+                    error: function (e) {
+                        alert('添加失败!' + name + e)
+
+                    }
+                })
+            } else {
+                alert('请输入完整信息！')
+            }
+        }
+
+        function add_resp_body() {
+
+            var key = $('#modal_resp_body_key').val();
+            var path = $('#modal_resp_body_path').val();
+            var type = $('#modal_resp_body_type').val();
+            var type_rule = $('#modal_resp_body_type_rule').val();
+
+            var data = {
+                key: key,
+                path: path,
+                type: type,
+                type_rule: type_rule
+            };
+
+{#            console.log(data);#}
+
+            if (key && path && type) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'add_resp_body/',
+                    data: data,
+                    success: function (p) {
+                        resp = JSON.parse(p);
+{#                        console.log(resp);#}
+                        var render_data = {
+                            key: key,
+                            path: path,
+                            type: type,
+                            type_rule: type_rule,
+                            body_id: resp.id
+                        };
+
+                        if (resp.flag == "Error") {
+                            alert('添加失败！错误：' + resp.context)
+                        }
+                        else {
+                            var add_html = template('tpl-project-resp-body', render_data);
+                            $('#resp_body_table').find('tbody').append(add_html);
+                            $('#createResponseBodyModal').modal('hide');
+                        }
+
+                    },
+                    error: function (e) {
+                        alert('添加失败!' + name + e)
+
+                    }
+                })
+            } else {
+                alert('请输入完整信息！')
+            }
+
+        }
+
+{#--------------------------------------------------------------------------------------------------------------------------------------------------------------------------#}
+        function handle_resp_header_action(obj) {
+{#            console.log(obj);#}
+
+            method_str = $(obj).text();
+            header_id = $('#modal_resp_header_id').val();
+
+            if (method_str == '保存') {
+
+{#                console.log('save action');#}
+
+                key = $('#modal_resp_header_key').val();
+                value = $('#modal_resp_header_value').val();
+
+                modify_resp_header(key, value, header_id);
+
+            }
+            else if (method_str == '添加') {
+                add_resp_header();
+            }
+            else {
+                delete_resp_header(header_id)
+            }
+
+        }
+
+        function modify_resp_header(key, value, header_id) {
+
+            var data = {
+                key: key,
+                value: value,
+                header_id: header_id
+            };
+
+            if (key && value) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'change_resp_header/',
+                    data: data,
+                    success: function (p) {
+
+                        resp = JSON.parse(p);
+
+                        if (resp.flag == "Error") {
+                            alert('添加失败！错误：' + p.context)
+                        }
+                        else {
+                            $('#resp_header_key_' + header_id).text(key);
+                            $('#resp_header_value_' + header_id).text(value);
+                            $('#createResponseHeaderModal').modal('hide');
+                        }
+                    },
+                    error: function (e) {
+                        alert('添加失败!' + name + e)
+
+                    }
+                })
+            } else {
+                alert('请输入完整信息！')
+            }
+        }
+
+        function delete_resp_header(header_id) {
+{#            console.log(header_id);#}
+            jQuery.ajax({
+                type: 'post',
+                url: 'delete_resp_header/',
+                data: {'header_id': header_id},
+
+                success: function (p) {
+{#                    console.log(p);#}
+                    $('#resp_header_id_' + header_id).remove();
+                    $('#createResponseHeaderModal').modal('hide');
+                },
+                error: function (e) {
+{#                    console.log(e)#}
+                }
+            })
+        }
+
+        function modal_resp_header_window(obj) {
+
+{#            console.log($(obj).attr('id'));#}
+
+            var from_id = $(obj).attr('id');
+            var header_id = $(obj).attr("value");
+            var key = $("resp_header_key_" + header_id).text();
+            var value = $("resp_header_value_" + header_id).text();
+
+            if (from_id == 'resp_header_modify') {
+
+                $('#response_header_modal_button').text('保存');
+                $('#modal_resp_header_key').val(key).removeAttr('readOnly').attr('required');
+                $('#modal_resp_header_value').val(value).removeAttr('readOnly').attr('required');
+                $('#modal_resp_header_id').val(header_id);
+                $('#header_modal_title').text('修改');
+
+            }
+            else if (from_id == 'resp_header_add') {
+                $('#response_header_modal_button').text('添加');
+                $('#header_modal_title').text('添加');
+                $('#modal_resp_header_key').val('').removeAttr('readOnly').attr('required');
+                $('#modal_resp_header_value').val('').removeAttr('readOnly').attr('required');
+            }
+            else {
+
+                $('#response_header_modal_button').text('删除');
+                $('#modal_resp_header_key').val(key).attr('readOnly', 'true');
+                $('#modal_resp_header_value').val(value).attr('readOnly', 'true');
+                $('#modal_resp_header_id').val(header_id);
+                $('#header_modal_title').text('确认删除');
+            }
+
+        }
+
+        function add_resp_header() {
+            var key = $('#modal_resp_header_key').val();
+            var value = $('#modal_resp_header_value').val();
+
+            var data = {
+                key: key,
+                value: value
+            };
+{#            console.log(data);#}
+
+            if (key && value) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'add_resp_header/',
+                    data: data,
+                    success: function (p) {
+                        resp = JSON.parse(p);
+{#                        console.log(resp);#}
+                        var render_data = {
+                            key: key,
+                            value: value,
+                            header_id: resp.id
+                        };
+
+
+                        if (resp.flag == "Error") {
+                            alert('添加失败！错误：' + resp.context)
+                        }
+                        else {
+                            var add_html = template('tpl-project-resp-header', render_data);
+                            $('#resp_header_table').find('tbody').append(add_html);
+                            $('#createResponseHeaderModal').modal('hide');
+                        }
+
+                    },
+                    error: function (e) {
+                        alert('添加失败!' + name + e)
+
+                    }
+                })
+            } else {
+                alert('请输入完整信息！')
+            }
+
+        }
+
+{#-------------------------------------------------------------------------------------------------------------------------------------------------------------------#}
+        function add_request_param() {
+            var name = $('#add_name').val();
+            var type = $('#add_type').val();
+            var position = $('#add_position').val();
+            var value = $('#add_value').val();
+            var url_encode = $('#add_url_encode').val();
+            var data = {
+                name: name,
+                type: type,
+                position: position,
+                value: value,
+                url_encode: url_encode,
+                api_id: {{ api_id }}
+            };
+{#            console.log(data);#}
+
+            if (name && value && position) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'add_request_param/',
+                    data: data,
+                    success: function (p) {
+                        resp = JSON.parse(p);
+
+                        var render_data = {
+                            name: name,
+                            type: type,
+                            position: position,
+                            value: value,
+                            url_encode: url_encode,
+                            param_id: resp.id
+                        };
+
+{#                        console.log(render_data);#}
+
+                        var add_html = template('tpl-project', render_data);
+                        $('#request_param_table').find('tbody').append(add_html);
+
+                        if (resp.flag == "Error") {
+                            alert('添加失败！错误：' + p.context)
+                        }
+                    },
+                    error: function (e) {
+                        alert('添加失败!' + name + e)
+
+                    }
+                })
+            } else {
+                alert('请输入完整信息！')
+            }
+
+        }
+
+        function modal_param_window(obj) {
+
+            var form_id = $(obj).attr('id');
+            var param_id = $(obj).attr("value");
+
+            var key = $('#param_tr_key_' + param_id);
+            var type = $('#param_tr_type_' + param_id);
+            var position = $('#param_tr_position_' + param_id);
+            var value = $('#param_tr_value_' + param_id);
+            var encode = $('#param_tr_encode_' + param_id);
+
+
+            if (form_id == 'param_modify') {
+                $('#modal_line_key').val(key).removeAttr('readOnly').attr('required');
+                $('#modal_line_type').val(type).removeAttr('readOnly').attr('required');
+                $('#modal_line_position').val(position).removeAttr('readOnly').attr('required');
+                $('#modal_line_value').val(value).removeAttr('readOnly').attr('required');
+                $('#modal_line_encode').val(encode).removeAttr('readOnly').attr('required');
+                $('#modal_line_id').val(param_id);
+                $('#request_modal_button').text('保存');
+                $('#param_modal_title').text('修改');
+            }
+            else {
+                $('#modal_line_key').val(key).attr('readOnly', 'true');
+                $('#modal_line_type').val(type).attr('readOnly', 'true');
+                $('#modal_line_position').val(position).attr('readOnly', 'true');
+                $('#modal_line_value').val(value).attr('readOnly', 'true');
+                $('#modal_line_encode').val(encode).attr('readOnly', 'true');
+                $('#modal_line_id').val(param_id);
+                $('#request_modal_button').text('删除');
+                $('#param_modal_title').text('确认删除');
+            }
+
+        }
+
+        function change_request_param(obj) {
+
+            method_str = $(obj).text();
+
+            param_id = $('#modal_line_id').val();
+
+            if (method_str == '保存') {
+                key = $('#modal_line_key').val();
+                type = $('#modal_line_type').val();
+                position = $('#modal_line_position').val();
+                value = $('#modal_line_value').val();
+                encode = $('#modal_line_encode').val();
+
+                var data = {
+                    key: key,
+                    type: type,
+                    position: position,
+                    value: value,
+                    url_encode: encode,
+                    param_id: param_id
+                };
+
+                if (key && value && position) {
+                    jQuery.ajax({
+                        type: 'post',
+                        url: 'change_request_param/',
+                        data: data,
+                        success: function (p) {
+                            resp = JSON.parse(p);
+                            param_id = resp.id;
+
+                            $('#param_tr_key_' + param_id).text(key);
+                            $('#param_tr_type_' + param_id).text(type);
+                            $('#param_tr_position_' + param_id).text(position);
+                            $('#param_tr_value_' + param_id).text(value);
+                            $('#param_tr_encode_' + param_id).text(encode);
+
+                            $('#paramModal').modal('hide');
+
+                            if (resp.flag == "Error") {
+                                alert('添加失败！错误：' + p.context)
+                            }
+                        },
+                        error: function (e) {
+                            alert('添加失败!' + name + e)
+
+                        }
+                    })
+                } else {
+                    alert('请输入完整信息！')
+                }
+
+            }
+            else {
+{#                console.log(param_id);#}
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'delete_request_param/',
+                    data: {'id': param_id},
+
+                    success: function (p) {
+{#                        console.log(p);#}
+                        $('#param_id_' + param_id).remove();
+                        $('#paramModal').modal('hide');
+                    },
+                    error: function (e) {
+{#                        console.log(e)#}
+                    }
+                })
+
+            }
+
+        }
+
+    </script>
+{% endblock %}

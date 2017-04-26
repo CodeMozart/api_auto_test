@@ -1,0 +1,435 @@
+{% extends "base.html" %} {% block content %} {% load custom_filter %}
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">Config 列表</h3>
+                    <div class="pull-right box-tools">
+                        <button type="button" class="btn btn-success" data-toggle="modal"
+                                data-target="#createConfigModal">
+                            <i class="fa fa-plus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body table-responsive">
+                    <table class="table table-bordered">
+                        <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>基础URL</th>
+                            <th>共通参数</th>
+                            <th>描述</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for project_config in project_config_list %}
+                            <tr id="config_id_{{ project_config.id }}">
+                                <td>{{ project_config.name }}</td>
+                                <td>{{ project_config.base_url }}</td>
+                                <td>{{ project_config.common_params }}</td>
+                                <td>{{ project_config.description }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-warning"
+                                                onclick="readConfig({{ project_config.id }});event.cancelBubble=true;">
+                                            <i
+                                                    class="fa fa-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-danger"
+                                                onclick="deleteConfig({{ project_config.id }});event.cancelBubble=true;">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+        <div class="col-lg-6">
+            <div class="box box-primary">
+                <div class="box-header">
+                    <h3 class="box-title">API 列表</h3>
+                    <div class="pull-right box-tools">
+                        <button type="button" class="btn btn-success" data-toggle="modal"
+                                data-target="#createApiModal">
+                            <i class="fa fa-plus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body table-responsive">
+                    <table class="table table-hover table-bordered">
+                        <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>方法</th>
+                            <th>URL</th>
+                            <th>场景</th>
+                            <th>描述</th>
+                            <th>超时时间</th>
+                            <th>验证方法</th>
+                            <th>最近修改</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for api in api_list %}
+                            <tr id="api_id_{{ api.id }}" onclick="location='/api/{{ api.id }}'">
+                                <td>{{ api.name }}</td>
+                                <td>{{ api.method }}</td>
+                                <td>{{ api.url }}</td>
+                                <td>{{ api.scene }}</td>
+                                <td>{{ api.description }}</td>
+                                <td>{{ api.overtime }}</td>
+                                <td>{{ api.validate_method }}</td>
+                                <td>{{ api.modify_recently }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-warning"
+                                                onclick="readApi({{ api.id }});event.cancelBubble=true;">
+                                            <i class="fa fa-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-danger"
+                                                onclick="deleteApi({{ api.id }});event.cancelBubble=true;">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+        <!-- /.col -->
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="createConfigModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            {#            <div class="modal-content">#}
+            {#                <div class="modal-header">#}
+            {#                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">#}
+            {#                        <span aria-hidden="true">×</span></button>#}
+            {#                    <h4 class="modal-title">Primary Modal</h4>#}
+            {#                </div>#}
+            {#                <div class="modal-body">#}
+            {#                    <p>One fine body…</p>#}
+            {#                </div>#}
+            {#                <div class="modal-footer">#}
+            {#                    <button type="button" class="btn btn-outline pull-left" data-dismiss="modal">Close</button>#}
+            {#                    <button type="button" class="btn btn-outline">Save changes</button>#}
+            {#                </div>#}
+            {#            </div>#}
+
+            <div class="box box-success box-solid">
+                <div class="box-header">
+                    <h3 class="box-title">添加 Config</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <form role="form" method="post" action="createConfig/">
+                    {% csrf_token %}
+                    <div class="box-body">
+                        <input type="hidden" name="project_id" value="{{ id }}">
+                        <div class="form-group">
+                            <label for="config_name">名称</label>
+                            <input type="text" class="form-control" name="config_name" placeholder="名称" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="base_url">基础URL</label>
+                            <input type="text" class="form-control" name="base_url" placeholder="基础URL" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="common_params">共通参数</label>
+                            <input type="text" class="form-control" name="common_params" placeholder="共通参数" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">描述</label>
+                            <input type="text" class="form-control" name="description" placeholder="描述" required>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary">添加</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    <div class="modal fade" id="editConfigModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-warning box-solid">
+                <div class="box-header">
+                    <h3 class="box-title">修改 Config</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <form role="form" method="post" action="updateConfig/">
+                    {% csrf_token %}
+                    <div class="box-body">
+                        <input type="hidden" name="project_id" value="{{ id }}">
+                        <input id="update_config_id" type="hidden" name="id">
+                        <div class="form-group">
+                            <label for="config_name">名称</label>
+                            <input id="update_config_name" type="text" class="form-control" name="config_name"
+                                   placeholder="名称" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="base_url">基础URL</label>
+                            <input id="update_config_base_url" type="text" class="form-control" name="base_url"
+                                   placeholder="基础URL" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="common_params">共通参数</label>
+                            <input id="update_config_common_params" type="text" class="form-control"
+                                   name="common_params" placeholder="共通参数" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="description">描述</label>
+                            <input id="update_config_description" type="text" class="form-control" name="description"
+                                   placeholder="描述" required>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary">修改</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    <div class="modal fade" id="createApiModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-success box-solid">
+                <div class="box-header">
+                    <h3 class="box-title">添加 API</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <form role="form" method="post" action="createApi/">
+                    {% csrf_token %}
+                    <div class="box-body">
+                        <input type="hidden" name="project_id" value="{{ id }}">
+                        <div class="form-group">
+                            <label for="config_name">名称</label>
+                            <input type="text" class="form-control" name="name" placeholder="名称" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="config_name">方法</label>
+                            <input type="text" class="form-control" name="method" placeholder="方法" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="config_name">URL</label>
+                            <input type="text" class="form-control" name="url" placeholder="URL" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="config_name">场景</label>
+                            <input type="text" class="form-control" name="scene" placeholder="场景" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="base_url">描述</label>
+                            <input type="text" class="form-control" name="description" placeholder="描述" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="common_params">超时时间</label>
+                            <input type="number" class="form-control" name="overtime" placeholder="超时时间" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="config_name">验证方法</label>
+                            <input type="text" class="form-control" name="validate_method" placeholder="验证方法" required>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary">添加</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    <div class="modal fade" id="editApiModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-warning box-solid">
+                <div class="box-header">
+                    <h3 class="box-title">修改 Api</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <form role="form" method="post" action="updateApi/">
+                    {% csrf_token %}
+                    <div class="box-body">
+                        <input type="hidden" name="project_id" value="{{ id }}">
+                        <input id="update_api_id" type="hidden" name="id">
+                        <div class="form-group">
+                            <label for="config_name">名称</label>
+                            <input id="update_api_name" type="text" class="form-control" name="name" placeholder="名称"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label for="config_name">方法</label>
+                            <input id="update_api_method" type="text" class="form-control" name="method"
+                                   placeholder="方法" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="config_name">URL</label>
+                            <input id="update_api_url" type="text" class="form-control" name="url" placeholder="URL"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label for="config_name">场景</label>
+                            <input id="update_api_scene" type="text" class="form-control" name="scene" placeholder="场景"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label for="base_url">描述</label>
+                            <input id="update_api_description" type="text" class="form-control" name="description"
+                                   placeholder="描述" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="common_params">超时时间</label>
+                            <input id="update_api_overtime" type="number" class="form-control" name="overtime"
+                                   placeholder="超时时间" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="config_name">验证方法</label>
+                            <input id="update_api_validate_method" type="text" class="form-control"
+                                   name="validate_method" placeholder="验证方法" required>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary">修改</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    {% load staticfiles %}
+    <!-- DataTables -->
+    <link rel="stylesheet" href="{% static "plugins/datatables/dataTables.bootstrap.css" %}">
+    <script src="{% static "plugins/echarts/echarts.min.js" %}"></script>
+    <script src="{% static "plugins/echarts/macarons.js" %}"></script>
+    <!-- DataTables -->
+    <script src="{% static "plugins/datatables/jquery.dataTables.min.js" %}"></script>
+    <script src="{% static "plugins/datatables/dataTables.bootstrap.min.js" %}"></script>
+    <!-- SlimScroll -->
+    <script src="{% static "plugins/slimScroll/jquery.slimscroll.min.js" %}"></script>
+    <!-- FastClick -->
+    <script src="{% static "plugins/fastclick/fastclick.js" %}"></script>
+
+    <script>
+        $('#menu_dashboard').removeClass('active');
+        $('#menu_project_6').addClass('active');
+        $('#page_header').text('王者荣耀');
+        $('#page_header_descript').text('ID:' + {{ id }});
+        $('#page_nav').text('项目');
+        $('#page_name').text('项目详情');
+        {#        $('#example1').DataTable({#}
+        {#            "paging": true,#}
+        {#            "lengthChange": false,#}
+        {#            "searching": false,#}
+        {#            "ordering": false,#}
+        {#            "info": true,#}
+        {#            "autoWidth": true#}
+        {#        });#}
+        function readConfig(configId) {
+            jQuery.ajax({
+                type: 'get',
+                url: 'readConfig/',
+                data: {id: configId},
+                success: function (data) {
+                    data = JSON.parse(data);
+                    $('#update_config_id').val(data.id);
+                    $('#update_config_name').val(data.name);
+                    $('#update_config_base_url').val(data.base_url);
+                    $('#update_config_common_params').val(data.common_params);
+                    $('#update_config_description').val(data.description);
+                    $('#editConfigModal').modal({keyboard: true});
+                },
+                error: function () {
+                    alert('请求失败!');
+                }
+            });
+        }
+        function deleteConfig(configId) {
+            if (confirm("确认删除？")) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'deleteConfig/',
+                    data: {id: configId},
+                    success: function () {
+                        $('#config_id_' + configId).remove();
+                    },
+                    error: function () {
+                        alert('请求失败!');
+                    }
+                });
+            }
+            return false;
+        }
+        function readApi(apiId) {
+            jQuery.ajax({
+                type: 'get',
+                url: 'readApi/',
+                data: {id: apiId},
+                success: function (data) {
+                    data = JSON.parse(data);
+                    $('#update_api_id').val(data.id);
+                    $('#update_api_name').val(data.name);
+                    $('#update_api_method').val(data.method);
+                    $('#update_api_url').val(data.url);
+                    $('#update_api_scene').val(data.scene);
+                    $('#update_api_description').val(data.description);
+                    $('#update_api_overtime').val(data.overtime);
+                    $('#update_api_validate_method').val(data.validate_method);
+                    $('#editApiModal').modal({keyboard: true});
+                },
+                error: function () {
+                    alert('请求失败!');
+                }
+            });
+        }
+        function deleteApi(apiId) {
+            if (confirm("确认删除？")) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'deleteApi/',
+                    data: {id: apiId},
+                    success: function () {
+                        $('#api_id_' + apiId).remove();
+                    },
+                    error: function () {
+                        alert('请求失败!');
+                    }
+                });
+            }
+            return false;
+        }
+    </script>
+{% endblock %}

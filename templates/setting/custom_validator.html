@@ -1,0 +1,189 @@
+{% extends "base.html" %} {% block content %} {% load custom_filter %}
+
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">检查器列表</h3>
+                    <div class="pull-right box-tools">
+                        <button type="button" class="btn btn-success" data-toggle="modal"
+                                data-target="#createCVRModal">
+                            <i class="fa fa-plus"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body table-responsive">
+                    <table id="custom_validator_list" class="table table-hover table-bordered">
+                        <thead>
+                        <tr>
+                            <th>名称</th>
+                            <th>代码</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for cvr in cvr_list %}
+                            <tr id="cvr_id_{{ cvr.id }}">
+                                <td>{{ cvr.name }}</td>
+                                <td>{{ cvr.code }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-warning"
+                                                onclick="readCVR({{ cvr.id }});event.cancelBubble=true;">
+                                            <i class="fa fa-pencil"></i>
+                                        </button>
+                                        <button type="button" class="btn btn-danger"
+                                                onclick="deleteCVR({{ cvr.id }});event.cancelBubble=true;">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                <!-- /.box-body -->
+            </div>
+            <!-- /.box -->
+        </div>
+    </div>
+
+    <div class="modal fade" id="createCVRModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-success box-solid">
+                <div class="box-header">
+                    <h3 class="box-title">添加 检查器</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <form role="form" method="post" action="create-custom-validator/">
+                    {% csrf_token %}
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label for="name">名称</label>
+                            <input type="text" class="form-control" name="name" placeholder="名称" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="base_url">代码</label>
+                            <br>
+                            <b>def check(response):</b>
+                            <textarea class="form-control" rows="20" name="code" placeholder="result = True"
+                                      required></textarea>
+                            <b>return result</b>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary">添加</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    <div class="modal fade" id="updateCVRModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-warning box-solid">
+                <div class="box-header">
+                    <h3 class="box-title">修改 检查器</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <form role="form" method="post" action="update-custom-validator/">
+                    {% csrf_token %}
+                    <div class="box-body">
+                        <input id="edit_CVR_id" name="id" type="hidden">
+                        <div class="form-group">
+                            <label for="name">名称</label>
+                            <input id="edit_CVR_name" type="text" class="form-control" name="name" placeholder="名称"
+                                   required>
+                        </div>
+                        <div class="form-group">
+                            <label for="base_url">代码</label>
+                            <br>
+                            <b>def check(response):</b>
+                            <textarea id="edit_CVR_code" class="form-control" rows="20" name="code"
+                                      placeholder="result = True" required></textarea>
+                            <b>return result</b>
+                        </div>
+                    </div>
+                    <!-- /.box-body -->
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary">提交</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static "plugins/datatables/dataTables.bootstrap.css" %}">
+    <script src="{% static "plugins/echarts/echarts.min.js" %}"></script>
+    <script src="{% static "plugins/echarts/macarons.js" %}"></script>
+    <!-- DataTables -->
+    <script src="{% static "plugins/datatables/jquery.dataTables.min.js" %}"></script>
+    <script src="{% static "plugins/datatables/dataTables.bootstrap.min.js" %}"></script>
+    <!-- SlimScroll -->
+    <script src="{% static "plugins/slimScroll/jquery.slimscroll.min.js" %}"></script>
+    <!-- FastClick -->
+    <script src="{% static "plugins/fastclick/fastclick.js" %}"></script>
+    <script>
+        $('#menu_system_config').addClass('active');
+        $('#menu_config_custom_validator').addClass('active');
+        $('#page_header').text('自定义检查器');
+        $('#page_header_descript').text('检查器列表');
+        $('#page_nav').text('设置');
+        $('#page_name').text('自定义检查器');
+        $('#custom_validator_list').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true
+        });
+
+        function readCVR(id) {
+            $.ajax({
+                type: 'get',
+                url: 'read-custom-validator/',
+                data: {id: id},
+                success: function (data) {
+                    data = JSON.parse(data);
+                    console.log(data);
+                    $('#edit_CVR_id').val(data.id);
+                    $('#edit_CVR_name').val(data.name);
+                    $('#edit_CVR_code').val(data.code);
+                    $('#updateCVRModal').modal();
+                },
+                error: function () {
+                    alert('请求失败!');
+                }
+            })
+        }
+        function deleteCVR(id) {
+            if (confirm("确认删除？")) {
+                jQuery.ajax({
+                    type: 'post',
+                    url: 'delete-custom-validator/',
+                    data: {id: id},
+                    success: function () {
+                        $('#cvr_id_' + id).remove();
+                    },
+                    error: function () {
+                        alert('请求失败!');
+                    }
+                });
+            }
+            return false;
+        }
+    </script>
+{% endblock %}

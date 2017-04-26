@@ -1,0 +1,273 @@
+{% extends "base.html" %} {% block content %} {% load custom_filter %}
+
+    <div class="col-md-10">
+        <div class="box">
+            <div class="box-header">
+                <div>任务：{{ task.name }}</div>
+                <div>任务类型：{% if task.type == 1 %} 定时 {% else %} 循环 {% endif %}</div>
+                <div>间隔：{{ task.between_time }}</div>
+                <div>开始时间：{{ task.start_time }}</div>
+                <div>结束时间：{{ task.end_time }}</div>
+                <div>全局变量：{{ task.global_value }}</div>
+                <div>状态：{{ task.state }}</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-10">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">用例列表</h3>
+                <div class="pull-right box-tools">
+                    <button type="button" class="btn btn-success" data-toggle="modal"
+                            data-target="#addCaseModal">
+                        <i class="fa fa-plus"></i></button>
+                </div>
+            </div>
+
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="dataTables_wrapper form-inline dt-bootstrap">
+                    <table id="api_test_table" class="table table-bordered table-striped">
+                        <thead>
+                        <tr>
+                            <th>用例名称</th>
+                            <th>所属项目</th>
+                            <th>接口名称</th>
+                            <th>参数</th>
+                            <th>验证方法</th>
+                            <th>任务类型</th>
+                            <th>总运行次数</th>
+                            <th>成功次数</th>
+                            <th>失败次数</th>
+                            <th>操作</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for api_test in api_test_list %}
+                            <tr id="task_tr{{ api_test.id }}" onclick="location='/task/task_id{{ api_test.id }}'">
+                                <td>{{ api_test.name }}</td>
+                                <td>{{ api_test.project_name }}</td>
+                                <td>{{ api_test.api_name }}</td>
+                                <td>{{ api_test.param }}</td>
+                                <td>{{ api_test.test_method }}</td>
+                                <td>{{ api_test.task_type }}</td>
+                                <td>{{ api_test.total_run }}</td>
+                                <td>{{ api_test.success_run }}</td>
+                                <td>{{ api_test.fail_run }}</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button type="button" class="btn btn-danger" onclick="delete_api_test({{ api_test.id }})"><i class="fa fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                    <div class="row">
+                        <div class="col-sm-5">
+                            <div class="dataTables_info" id="project_info" role="status" aria-live="polite">Showing 1 to 10 of 57 entries</div>
+                        </div>
+                        <div class="col-sm-7">
+                            <div class="dataTables_paginate paging_simple_numbers" id="project_paginate">
+                                <ul class="pagination">
+                                    <li class="paginate_button previous disabled" id="project_previous">
+                                        <a href="#" aria-controls="pages" data-dt-idx="0" tabindex="0">Previous</a>
+                                    </li>
+                                    {% for page in pages %}
+                                        <li class="paginate_button {% if page.active == 1 %} active {% endif %}">
+                                            <a href="#" aria-controls="page{{ page.index }}" data-dt-idx="{{ page.index }}" tabindex="0">{{ page.index }}</a>
+                                        </li>
+                                    {% endfor %}
+                                    <li class="paginate_button next" id="project_next">
+                                        <a href="#" aria-controls="project" data-dt-idx="0" tabindex="0">Next</a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="addCaseModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box">
+                <div class="box-header">
+                    <h3 class="box-title">添加测试用例</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <form class="form-horizontal" action="add_api_test" method="POST">
+                    {% csrf_token %}
+                    <div class="box-body">
+                        <div class="form-group">
+                            <label for="input_project" class="col-sm-2 control-label">项目:</label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="input_project" name="input_project"
+                                        onchange="change_select_project(this.options[this.options.selectedIndex].id)">
+                                    <option value="选择项目">选择项目</option>
+                                    {% for project in project_list %}
+                                        <option id="{{ project.id }}">{{ project.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div>
+                                <label for="input_api" class="col-sm-2 control-label">接口:</label>
+                            </div>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="input_api" name="input_api"
+                                        onchange="change_select_api(this.options[this.options.selectedIndex].id)">
+                                    <option value="选择API">选择API</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label for="input_api_test" class="col-sm-2 control-label">测试用例:</label>
+                            <div class="col-sm-8">
+                                <select class="form-control" id="input_api_test" name="input_api_test"
+                                        onchange="change_select_api_test(this.options[this.options.selectedIndex].id)">
+                                    <option value="选择用例">选择用例</option>
+                                </select>
+                                <div class="has-error">
+                                    <span id="add_error_message" class="help-block has-error">请选择测试用例</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display:none">
+                            <input type="text" class="form-control" id="input_task_id" name="input_task_id" value="{{ task.id }}">
+                        </div>
+                    </div>
+                    <div class="box-footer">
+                        <button type="submit" class="btn btn-primary">添加</button>
+                    </div>
+                </form>
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static "plugins/datatables/dataTables.bootstrap.css" %}">
+    <script src="{% static "plugins/echarts/echarts.min.js" %}"></script>
+    <script src="{% static "plugins/echarts/macarons.js" %}"></script>
+    <!-- DataTables -->
+    <script src="{% static "plugins/datatables/jquery.dataTables.min.js" %}"></script>
+    <script src="{% static "plugins/datatables/dataTables.bootstrap.min.js" %}"></script>
+    <!-- SlimScroll -->
+    <script src="{% static "plugins/slimScroll/jquery.slimscroll.min.js" %}"></script>
+    <!-- FastClick -->
+    <script src="{% static "plugins/fastclick/fastclick.js" %}"></script>
+    <script src="{% static "plugins/art-template-master/lib/template-web.js" %}"></script>
+    <script src="{% static "plugins/timepicker/bootstrap-timepicker.js" %}"></script>
+    <script>
+        $('#menu_dashboard').addClass('active');
+        $('#menu_service').removeClass('active');
+        $('#page_header').text('测试用例');
+        $('#page_nav').text('项目管理');
+        $('#page_name').text('定时任务');
+        $('#page_name2').text('测试用例');
+
+        $('.datetimepicker').datetimepicker({
+                format: 'YYYY-MM-DD HH:mm:ss'
+            }
+        );
+        $('#add_error_message').hide();
+
+        function change_select_project(project_id) {
+            alert('点击了修改project' + project_id);
+            jQuery.ajax({
+                url: 'change_select_project',
+                type: 'post',
+                data: {'project_id': project_id},
+                success: function (p) {
+                    var response = JSON.parse(p);
+                    console.log('success' + response);
+                    if (response.flag == "Success") {
+                        var optionStr = '<option value="">选择API</option>';
+                        $.each(response.api_list, function (k, v) {
+                            optionStr += '<option value="' + v.id + '">' + v.name + '</option>';
+                        });
+                        $('select[name="input_api"]').html(optionStr);
+                    }
+                },
+                error: function (e) {
+                    console.log('错误' + e)
+                }
+            });
+        }
+        function change_select_api() {
+            api_id = $('select[name="input_api"]').val();
+            alert('点击了修改api' + api_id);
+            jQuery.ajax({
+                url: 'change_select_api',
+                type: 'post',
+                data: {'api_id': api_id},
+                success: function (p) {
+                    var response = JSON.parse(p);
+                    console.log(response);
+                    if (response.flag == "Success") {
+                        var optionStr = '<option value="">选择用例</option>';
+                        $.each(response.api_test_list, function (k, v) {
+                            optionStr += '<option value="' + v.id + '">' + v.name + '</option>';
+                        });
+                        $('select[name="input_api_test"]').html(optionStr);
+                    }
+                }
+            });
+        }
+        function change_select_api_test() {
+            api_test_id = $('select[name="input_api_test"]').val();
+            alert('点击了修改api_test_id' + api_test_id);
+            if (api_test_id > 0) {
+                $('#add_error_message').hide();
+            }
+            else {
+                $('#add_error_message').show();
+            }
+        }
+        function delete_api_test(api_test_id) {
+            alert('点击了删除');
+            jQuery.ajax({
+                type: 'post',
+                url: 'delete_api_test',
+                data: {'api_test_id': api_test_id},
+                success: function (p) {
+                    var response = JSON.parse(p);
+                    console.log(response);
+                    if (response.flag == "Success") {
+                        alert("删除成功！");
+                        $('#case_tr' + case_id).remove()
+                    } else if (response.flag == "Error") {
+                        alert('删除失败！错误：' + response.flag);
+                    }
+                },
+                error: function (e) {
+                    alert('删除失败!' + name + created + owner);
+
+                }
+            });
+            event.stopPropagation();
+        }
+
+        $('form').find('button').click(function () {
+            if ($('select[name="input_api_test"]').val() > 0) {
+                $('#add_error_message').hide();
+                return true;
+            }
+            else {
+                $('#add_error_message').show();
+                return false;
+            }
+        })
+
+    </script>
+{% endblock %}
