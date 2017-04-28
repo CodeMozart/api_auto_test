@@ -4,13 +4,18 @@ from django.http import HttpResponse
 from django.shortcuts import render, redirect
 import json
 from models import *
+import time
 from datetime import datetime
 from test_executor.test_executor import TestExecutor
+from dashboard.models import ApiTestExecuteLog
+from setting.models import CustomValidateRule
+
+
 # Create your views here.
 
 
 def view(request):
-    return render(request=request,template_name='api/view.html')
+    return render(request=request, template_name='api/view.html')
 
 
 def detail_view(request, project_id, api_id):
@@ -23,13 +28,11 @@ def detail_view(request, project_id, api_id):
     resp_header_list = ResponseHeader.objects.all()
     resp_body_list = ResponseBody.objects.all()
     key_type_list = KeyType.objects.all()
-    default_type = key_type_list[0]
-    # type_rule_list = TypeRule.objects.filter(type=default_type)
     api_test_list = ApiTest.objects.all()
-    api_test_method_list = ApiTestMethod.objects.all()
+    api_test_method_list = CustomValidateRule.objects.all()
     api_test_task_type_list = ApiTestTaskType.objects.all()
 
-    return render(request=request,template_name='api/detail_view.html',context={
+    return render(request=request, template_name='api/detail_view.html', context={
         'api_info': api_info,
         'api_id': api_id,
         'name': 'API_DETAIL',
@@ -45,7 +48,6 @@ def detail_view(request, project_id, api_id):
 
 
 def add_request_param(request, project_id, api_id):
-
     if request.method == "POST":
         try:
             data = request.POST
@@ -58,7 +60,8 @@ def add_request_param(request, project_id, api_id):
 
             api_info = ApiInfo.objects.get_or_create(name='cm_test_api')[0]
 
-            request_param = CommonRequestParam(api_info=api_info,key=name,value=value,position=position,type=type,url_encode=url_encode)
+            request_param = CommonRequestParam(api_info=api_info, key=name, value=value, position=position, type=type,
+                                               url_encode=url_encode)
             request_param.save()
             param_id = request_param.id
 
@@ -73,7 +76,6 @@ def add_request_param(request, project_id, api_id):
 
 
 def change_request_param(request, project_id, api_id):
-
     if request.method == "POST":
         try:
             data = request.POST
@@ -121,7 +123,7 @@ def add_resp_header(request, project_id, api_id):
             api_info = ApiInfo.objects.get_or_create(name='cm_test_api')[0]
             resp = Response.objects.get_or_create(api_info=api_info)[0]
 
-            resp_header = ResponseHeader(response=resp,key=key,value=value)
+            resp_header = ResponseHeader(response=resp, key=key, value=value)
             resp_header.save()
 
             resp_header_id = resp_header.id
@@ -161,7 +163,6 @@ def change_resp_header(request, project_id, api_id):
 
 
 def delete_resp_header(request, project_id, api_id):
-
     print '==================== python delete header ===================='
     id = request.POST['header_id']
     model = ResponseHeader.objects.get(id=id)
@@ -170,7 +171,6 @@ def delete_resp_header(request, project_id, api_id):
 
 
 def select_resp_body_type(request, project_id, api_id):
-
     if request.method == "POST":
         try:
 
@@ -202,7 +202,7 @@ def add_resp_body(request, project_id, api_id):
             api_info = ApiInfo.objects.get(id=api_id)
             resp = Response.objects.get_or_create(api_info=api_info)[0]
 
-            resp_body = ResponseBody(response=resp,key=key,path=path,type=type,type_rule=type_rule)
+            resp_body = ResponseBody(response=resp, key=key, path=path, type=type, type_rule=type_rule)
             resp_body.save()
 
             resp_body_id = resp_body.id
@@ -246,7 +246,6 @@ def change_resp_body(request, project_id, api_id):
 
 
 def delete_resp_body(request, project_id, api_id):
-
     print '==================== python delete header ===================='
     id = request.POST['body_id']
     model = ResponseBody.objects.get(id=id)
@@ -264,9 +263,10 @@ def add_api_test(request, project_id, api_id):
             post_data = data.get('post_data')
             task_type = data.get('task_type')
 
-            api_info = ApiInfo.objects.get_or_create(name='cm_test_api')[0]
+            api_info = ApiInfo.objects.get(id=api_id)
 
-            api_test = ApiTest(api_info=api_info,name=name,param=param,test_method=method,task_type=task_type,project_id=project_id,post_data=post_data)
+            api_test = ApiTest(api_info=api_info, name=name, param=param, test_method=method, task_type=task_type,
+                               project_id=int(project_id), post_data=post_data)
             api_test.save()
 
             api_test_id = api_test.id
@@ -312,7 +312,6 @@ def change_api_test(request, project_id, api_id):
 
 
 def delete_api_test(request, project_id, api_id):
-
     print '==================== python delete header ===================='
     id = request.POST['api_test_id']
     model = ApiTest.objects.get(id=id)
@@ -335,7 +334,7 @@ def change_api_base_info(request, project_id, api_id):
             overtime = data.get('overtime')
             current_date = datetime.now().strftime('%Y-%m-%d')
 
-            api_info = ApiInfo.objects.get_or_create(id = api_id)[0]
+            api_info = ApiInfo.objects.get_or_create(id=api_id)[0]
             api_info.name = name
             api_info.method = request_method
             api_info.validate_method = validate_method
@@ -357,7 +356,6 @@ def change_api_base_info(request, project_id, api_id):
 
 
 def execute_api_test(request, project_id, api_id):
-
     if request.method == 'GET':
         data = request.GET
         test_id = data.get('testid')
@@ -367,7 +365,7 @@ def execute_api_test(request, project_id, api_id):
         success_run = api_test.success_run
         total_run = api_test.total_run
         fail_run = api_test.fail_run
-        total_run  += 1
+        total_run += 1
 
         context = test_executor.send_request()
         if context.get('status'):
@@ -386,6 +384,17 @@ def execute_api_test(request, project_id, api_id):
         context['total_run'] = total_run
         context['fail_run'] = fail_run
         context['success_run'] = success_run
+        current_time = str(time.time())
+
+        execute_log = ApiTestExecuteLog(project_id=int(project_id),
+                                        api_id=int(api_id),
+                                        scheduled=False,
+                                        execute_result=context.get('status'),
+                                        error_msg=context.get('msg', 'success'),
+                                        success_data=context.get('success_data', 'no data'),
+                                        execute_time=current_time)
+
+        execute_log.save()
 
         return HttpResponse(json.dumps(context))
 

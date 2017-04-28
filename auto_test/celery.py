@@ -2,6 +2,8 @@ from __future__ import absolute_import, unicode_literals
 import os
 import time
 from celery import Celery
+# from test_executor.test_executor import TimeTaskExecutor
+# from api.models import *
 
 # set the default Django settings module for the 'celery' program.
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'auto_test.settings')
@@ -38,3 +40,12 @@ def mul(x, y):
 @app.task
 def xsum(numbers):
     return sum(numbers)
+
+
+
+
+# @app.task
+# def execute_time_task(taskid):
+#     time_task_executor = TimeTaskExecutor(taskid=taskid)
+#     time_task_executor()
+#     print 'aaa'

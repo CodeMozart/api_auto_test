@@ -80,7 +80,7 @@
                         </thead>
                         <tbody>
                         {% for api in api_list %}
-                            <tr id="api_id_{{ api.id }}" onclick="location='/api/{{ api.id }}'">
+                            <tr id="api_id_{{ api.id }}" onclick="location='api/{{ api.id }}'">
                                 <td>{{ api.name }}</td>
                                 <td>{{ api.method }}</td>
                                 <td>{{ api.url }}</td>

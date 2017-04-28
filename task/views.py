@@ -2,13 +2,14 @@
 from __future__ import unicode_literals
 import json
 import time
+import string
 import datetime
 from django.http import HttpResponse, HttpResponseRedirect
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.db import connection
-
 from models import *
+from django_celery_beat.models import PeriodicTask, CrontabSchedule
 from api.models import ApiInfo, ApiTest
 from project.models import Project
 
@@ -49,6 +50,7 @@ def get_task_list():
         task_dict['name'] = task.name
         task_dict['type'] = task.type
         task_dict['between_time'] = between_time
+        task_dict['run_time'] = task.run_time
         task_dict['start_time'] = start_time
         task_dict['end_time'] = end_time
         task_dict['global_value'] = task.global_value
@@ -64,15 +66,35 @@ def add_task(request):
             data = request.POST
             type_data = 1 if data.get('input_type') == '定时' else 2
             state_data = 1 if data.get('input_state') == '开启' else 2
-            between_time = int(data.get('input_between'))
-            if data.get('input_between_unit') == '分钟':
-                between_time *= 60
-            elif data.get('input_between_unit') == '小时':
-                between_time = between_time * 60 * 60
-            elif data.get('input_between_unit') == '天':
-                between_time = between_time * 60 * 60 * 24
-            elif data.get('input_between_unit') == '周':
-                between_time = between_time * 60 * 60 * 24 * 7
+            run_time = ''
+            between_time = 0
+            minute = ''
+            hour = ''
+
+            if type_data == 1:
+                run_time = data.get('input_runtime')
+                if len(run_time.split(':')) > 1:
+                    minute = '%s' % run_time.split(':')[-1]
+                    hour = '%s' % run_time.split(':')[0]
+            else:
+                between_time = int(data.get('input_between'))
+                if data.get('input_between_unit') == '分钟':
+                    between_time *= 60
+                    minute = '*/%s' % data.get('input_between')
+                    hour = 0
+                elif data.get('input_between_unit') == '小时':
+                    between_time = between_time * 60 * 60
+                    hour = '*/%s' % data.get('input_between')
+                    minute = 0
+                elif data.get('input_between_unit') == '天':
+                    between_time = between_time * 60 * 60 * 24
+                    hour = '*/%s' % int(data.get('input_between')) * 24
+            # minute = models.CharField(max_length=64, default='*')
+            # hour = models.CharField(max_length=64, default='*')
+            # day_of_week = models.CharField(max_length=64, default='*')
+            # day_of_month = models.CharField(max_length=64, default='*')
+            # month_of_year = models.CharField(max_length=64, default='*')
+
 
             starttime_arr = time.strptime(data.get('input_starttime'), "%Y-%m-%d %H:%M:%S")
             starttime_int = int(time.mktime(starttime_arr))
@@ -84,17 +106,36 @@ def add_task(request):
                 task.name = data.get('input_name')
                 task.type = type_data
                 task.between_time = between_time
+                task.run_time = run_time
                 task.start_time = starttime_int
                 task.end_time = endtime_int
                 task.global_value = data.get('input_global_value')
                 task.state = state_data
+                task.minute = minute
+                task.hour = hour
                 task.save()
             else:
                 task = TimingTask(name=data.get('input_name'), type=type_data,
-                                  between_time=between_time,
+                                  between_time=between_time, run_time=run_time,
                                   start_time=starttime_int, end_time=endtime_int,
-                                  global_value=data.get('input_global_value'), state=state_data)
+                                  global_value=data.get('input_global_value'), state=state_data,
+                                  minute=minute, hour=hour)
                 task.save()
+
+            crontab = CrontabSchedule.objects.get_or_create(minute=task.minute, hour=task.hour)[0]
+            crontab.save()
+            periodic_task = PeriodicTask.objects.get_or_create(name=task.name)[0]
+            periodic_task.task = 'task.task.api_test_time_task'
+            periodic_task.crontab = crontab
+            periodic_task.args = [task.id]
+            if task.state == 1:
+                periodic_task.enable = True
+            elif task.state == 2:
+                periodic_task.enable = False
+
+            periodic_task.save()
+
+
             context = {'flag': 'Success'}
         except Exception, e:
             context = {"flag": 'Error', "context": str(e)}
@@ -108,6 +149,10 @@ def delete_task(request):
             data = request.POST
             task = TimingTask.objects.get(id=data.get('task_id'))
             task.delete()
+
+            periodic_task = PeriodicTask.objects.get(name=task.name)
+            periodic_task.delete()
+
             context = {'flag': 'Success'}
         except Exception, e:
             context = {"flag": 'Error', "context": str(e)}
@@ -117,23 +162,55 @@ def delete_task(request):
     return render(request, 'task/view.html', {'task_list': get_task_list()})
 
 
+# api_info = models.ForeignKey(ApiInfo)
+#     project_id = models.IntegerField(default=0)
+#     name = models.CharField(max_length=128)
+#     test_method = models.CharField(max_length=128)
+#     param = models.CharField(max_length=128)
+#     post_data = models.CharField(max_length=128)
+#     desc = models.CharField(max_length=128)
+#     task_type = models.CharField(max_length=128)
+#     total_run = models.IntegerField(default=0)
+#     success_run = models.IntegerField(default=0)
+#     fail_run = models.IntegerField(default=0)
+#     status = models.CharField(max_length=128)
+
+
 def task_detail(request):
     data = request.GET
     task = TimingTask.objects.get(id=data.get('task_id'))
-    api_test_list = [x for x in task.api_test_list.split(',')]
-    if len(api_test_list) < 1:
-        api_test_list = api_test_list
+    api_test_id_list = [x for x in task.api_test_list.split(',')]
+    if len(api_test_id_list) < 1:
+        api_test_id_list = api_test_id_list
     else:
-        if api_test_list[0] == '':
-            api_test_list = []
+        if api_test_id_list[0] == '':
+            api_test_id_list = []
     project_list = Project.objects.all()
+    api_test_list = [ApiTest.objects.get(id=test_id) for test_id in api_test_id_list]
+    need_api_test_list = []
     for api_test in api_test_list:
-        project_id = api_test.get('project_id')
-        api_test['project_name'] = Project.objects.get(id=project_id).get('project_name')
-        api_test['api_name'] = ApiInfo.objects.get(id=api_test.api_info)
+        need_api_test_dict = dict({})
+        project_id = api_test.project_id
+        project = Project.objects.get(id=project_id)
+
+        need_api_test_dict['project_name'] = project.name
+        need_api_test_dict['api_name'] = api_test.api_info.name
+        need_api_test_dict['id'] = api_test.id
+        need_api_test_dict['name'] = api_test.name
+        need_api_test_dict['test_method'] = api_test.test_method
+        need_api_test_dict['project_id'] = api_test.project_id
+        need_api_test_dict['param'] = api_test.param
+        need_api_test_dict['post_data'] = api_test.post_data
+        need_api_test_dict['desc'] = api_test.desc
+        need_api_test_dict['task_type'] = api_test.task_type
+        need_api_test_dict['total_run'] = api_test.total_run
+        need_api_test_dict['success_run'] = api_test.success_run
+        need_api_test_dict['fail_run'] = api_test.fail_run
+        need_api_test_dict['status'] = api_test.status
+        need_api_test_list.append(need_api_test_dict)
 
     return render(request, 'task/detail.html',
-                  {'api_test_list': api_test_list,
+                  {'api_test_list': need_api_test_list,
                    'task': task,
                    'project_list': project_list})
 
@@ -141,14 +218,20 @@ def task_detail(request):
 def add_api_test(request):
     data = request.POST
     task_id = data.get('input_task_id')
+    project_id = data.get('project_id')
+    api_id = data.get('project_id')
     api_test_id = data.get('input_api_test')
     task = TimingTask.objects.get(id=task_id)
-    api_test_id_list = [int(x) for x in task.api_test_list.split(',')]
-    if api_test_id not in api_test_id_list:
-        api_test_id_list.append(api_test_id)
-        str_api_test_list = ','.join(api_test_id_list)
-        task.api_test_list = str_api_test_list
+    api_test_id_list = task.api_test_list.split(',')
+    if task.api_test_list == '':
+        task.api_test_list = api_test_id
         task.save()
+    else:
+        if api_test_id not in api_test_id_list:
+            api_test_id_list.append(api_test_id)
+            str_api_test_list = ','.join(api_test_id_list)
+            task.api_test_list = str_api_test_list
+            task.save()
 
     return redirect('/task/detail?task_id=' + task_id)
 
@@ -161,7 +244,7 @@ def delete_api_test(request):
             task_id = data.get('task_id')
             api_test_id = data.get('api_test_id')
             task = TimingTask.objects.get(id=task_id)
-            api_test_id_list = [int(x) for x in task.api_test_list.split(',')]
+            api_test_id_list = [x for x in task.api_test_list.split(',')]
             if api_test_id in api_test_id_list:
                 api_test_id_list.remove(api_test_id)
                 str_api_test_list = ','.join(api_test_id_list)

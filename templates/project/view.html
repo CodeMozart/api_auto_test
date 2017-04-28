@@ -105,7 +105,7 @@
     </div>
 
     <script id="tpl-project" type="text/html">
-        <tr id="project_tr<%= id %>" onclick="click_project({{ project.id }})">
+        <tr id="project_tr<%= id %>" onclick="click_project(<%= id %>)">
             <th><a href="/project/6"><%= name %></a>
             </th>
             <th><%= created %></th>

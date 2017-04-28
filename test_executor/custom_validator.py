@@ -9,17 +9,17 @@ class CustomValidator:
 
     def __call__(self, response_dict):
         result = False
-        error_msg = 'Unknown error!'
-
+        error_msg = 'Custom validate error: '
+        response = response_dict
         try:
             exec self.custom_validate_rule.code
         except Exception, e:
             result = False
-            error_msg = e.message
+            error_msg = error_msg + e.message
 
         self.result = result
         if self.result:
             self.error_msg = ''
         else:
             self.error_msg = error_msg
-        return self.result
+            return self.error_msg

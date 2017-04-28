@@ -3,6 +3,8 @@ from jsonpath_rw import *
 import yaml
 import os
 from interval import Interval, IntervalSet
+from setting.models import CustomValidateRule
+from custom_validator import CustomValidator
 import re
 
 
@@ -12,7 +14,7 @@ class BaseValidator:
         self.response_data = response_data
         self.error_list = list()
 
-    def validate(self, validate_body):
+    def validate(self, validate_body, validate_method):
 
         for body in validate_body:
             key = body.key
@@ -20,6 +22,17 @@ class BaseValidator:
             type_str = body.type
             type_rule = body.type_rule
             self.validate_field_by_default(path=path, rule=type_rule, type_str=type_str)
+
+
+        # 这里添加自定义检查的步骤
+        custom_rule = CustomValidateRule.objects.get(name=validate_method)
+
+        if not custom_rule.is_default:
+            # 这里添加自定义检查的步骤
+            custom_validator = CustomValidator(rule_id=custom_rule.id)
+            if custom_validator(self.response_data):
+                self.error_list.append(custom_validator(self.response_data))
+            pass
 
         if len(self.error_list):
             # 如果error_list里面有错误信息，说明有字段校验未通过，返回错误信息
@@ -32,6 +45,7 @@ class BaseValidator:
         else:
             return {
                 'status': True,
+                'success_data': self.response_data
             }
             pass
 

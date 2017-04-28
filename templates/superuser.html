@@ -86,9 +86,9 @@
     };
 
     function create_superuser() {
-        var username = $('#username').val();
-        var password = $('#password').val();
-        var vpassword = $('#verify_password').val();
+        var username = $('#username').val()
+        var password = $('#password').val()
+        var vpassword = $('#verify_password').val()
         if (username && (password == vpassword)) {
             if (confirm("确认使用[" + username + "]做为您的管理员用户吗？")) {
                 jQuery.ajax({
@@ -98,10 +98,10 @@
                     dataType: 'json',
                     success: function(p) {
                         if (p.flag == "Success") {
-                            alert("创建成功！");
+                            alert("创建成功！")
                             top.location = '/login/'
                         } else if (p.flag == "Error") {
-                            alert('创建失败！错误：' + p.context);
+                            alert('创建失败！错误：' + p.context)
                             top.location = '/login/'
                         }
                     },

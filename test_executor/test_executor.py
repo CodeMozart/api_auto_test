@@ -2,7 +2,7 @@
 import requests
 from base_validator import *
 from api.models import *
-
+from auto_test.celery import app
 
 class TestExecutor:
     def __init__(self, test_id):
@@ -12,6 +12,7 @@ class TestExecutor:
         # ---- write by C.M.
         self.api_info = self.api_test.api_info
         base_url = self.api_info.url
+        self.test_method = self.api_test.test_method
         self_param = self.api_test.param
         request_params = CommonRequestParam.objects.filter(api_info=self.api_info)
         param_str = ''
@@ -93,12 +94,12 @@ class TestExecutor:
         common_validate_not_pass = self.validate_common_data(response_dict)
 
         if common_validate_not_pass:
-             # '''基本校验没有通过'''
+            # '''基本校验没有通过'''
             return common_validate_not_pass
 
         else:
             # """基本校验通过,进入下一步校验"""
-            resp_data = response_dict.get('data',{})
+            resp_data = response_dict.get('data', {})
 
             if len(resp_data):
                 pass
@@ -119,7 +120,7 @@ class TestExecutor:
 
         base_validator = BaseValidator(response_data=resp_data)
 
-        return base_validator.validate(validate_body=resp_bodys)
+        return base_validator.validate(validate_body=resp_bodys, validate_method=self.test_method)
 
     def validate_common_data(self, response_dict):
         ret = response_dict.get('ret', -1)
@@ -133,3 +134,12 @@ class TestExecutor:
                 'status': False,
                 'msg': 'Error, msg: ' + msg
             }
+
+
+class TimeTaskExecutor:
+    def __init__(self, taskid):
+        pass
+
+    def __call__(self, *args, **kwargs):
+        print 'lalala'
+        pass

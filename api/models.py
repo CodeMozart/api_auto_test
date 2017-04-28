@@ -59,7 +59,6 @@ class ApiTestTaskType(models.Model):
         return self.name
 
 
-
 class CommonRequestParam(models.Model):
     api_info = models.ForeignKey(ApiInfo)
     key = models.CharField(max_length=128)
@@ -95,7 +94,7 @@ class ResponseBody(models.Model):
     key = models.CharField(max_length=128, null=False)
     path = models.CharField(max_length=128, null=False, unique=True)
     type = models.CharField(max_length=128, null=False)
-    type_rule = models.CharField(max_length=128,null=False)
+    type_rule = models.CharField(max_length=128, null=False)
 
     def __str__(self):
         return self.key
@@ -109,7 +108,6 @@ class KeyType(models.Model):
     def __str__(self):
         return self.name
 
-
 # class TypeRule(models.Model):
 #     type = models.ForeignKey(KeyType)
 #     rule = models.CharField(max_length=128)
@@ -118,5 +116,3 @@ class KeyType(models.Model):
 #
 #     def __str__(self):
 #         return self.rule
-
-

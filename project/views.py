@@ -20,15 +20,22 @@ def view(request):
 
 
 def get_project_list():
-    # project1 = Project(name='项目名称1', created='2017-04-18', owner='SK')
-    # project2 = Project(name='项目名称2', created='2017-04-18', owner='SK')
-    # project3 = Project(name='项目名称3', created='2017-04-18', owner='SK')
-    # project4 = Project(name='项目名称4', created='2017-04-18', owner='SK')
-    # project5 = Project(name='项目名称5', created='2017-04-18', owner='SK')
-    # itemlist = [project1, project2, project3, project4, project5]
+
     all_item = Project.objects.all()
-    Project.objects.filter()
-    return all_item
+    project_list = []
+    for item in all_item:
+        project_dict = dict({})
+        project_dict['id'] = item.id
+        project_dict['name'] = item.name
+
+        created_timeStamp = item.created
+        created_timeArray = time.localtime(created_timeStamp)
+        created_time = time.strftime("%Y-%m-%d", created_timeArray)
+        project_dict['created'] = created_time
+        project_dict['owner'] = item.owner
+        project_list.append(project_dict)
+
+    return project_list
 
 
 def add_project(request):

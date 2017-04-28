@@ -115,7 +115,7 @@
                                         onchange="change_select_project(this.options[this.options.selectedIndex].id)">
                                     <option value="选择项目">选择项目</option>
                                     {% for project in project_list %}
-                                        <option id="{{ project.id }}">{{ project.name }}</option>
+                                        <option id="{{ project.id }}" value="{{ project.id }}">{{ project.name }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
@@ -183,7 +183,7 @@
         $('#add_error_message').hide();
 
         function change_select_project(project_id) {
-            alert('点击了修改project' + project_id);
+{#            alert('点击了修改project' + project_id);#}
             jQuery.ajax({
                 url: 'change_select_project',
                 type: 'post',
@@ -204,9 +204,9 @@
                 }
             });
         }
-        function change_select_api() {
+        function change_select_api(api_id) {
             api_id = $('select[name="input_api"]').val();
-            alert('点击了修改api' + api_id);
+{#            alert('点击了修改api' + api_id);#}
             jQuery.ajax({
                 url: 'change_select_api',
                 type: 'post',
@@ -224,7 +224,7 @@
                 }
             });
         }
-        function change_select_api_test() {
+        function change_select_api_test(api_test_id) {
             api_test_id = $('select[name="input_api_test"]').val();
             alert('点击了修改api_test_id' + api_test_id);
             if (api_test_id > 0) {
@@ -235,7 +235,7 @@
             }
         }
         function delete_api_test(api_test_id) {
-            alert('点击了删除');
+{#            alert('点击了删除');#}
             jQuery.ajax({
                 type: 'post',
                 url: 'delete_api_test',
@@ -244,14 +244,11 @@
                     var response = JSON.parse(p);
                     console.log(response);
                     if (response.flag == "Success") {
-                        alert("删除成功！");
-                        $('#case_tr' + case_id).remove()
+                        $('#api_test_tr' + api_test_id).remove()
                     } else if (response.flag == "Error") {
-                        alert('删除失败！错误：' + response.flag);
                     }
                 },
                 error: function (e) {
-                    alert('删除失败!' + name + created + owner);
 
                 }
             });
