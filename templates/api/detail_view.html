@@ -984,7 +984,8 @@
                 param: param,
                 method: method,
                 task_type: task_type,
-                post_data: post_data
+                post_data: post_data,
+                api_id: {{ api_id }}
             };
 
 {#            console.log(data);#}
@@ -1216,7 +1217,8 @@
                 key: key,
                 path: path,
                 type: type,
-                type_rule: type_rule
+                type_rule: type_rule,
+                api_id: {{ api_id }}
             };
 
 {#            console.log(data);#}
@@ -1379,7 +1381,8 @@
 
             var data = {
                 key: key,
-                value: value
+                value: value,
+                api_id: {{ api_id }}
             };
 {#            console.log(data);#}
 

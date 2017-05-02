@@ -53,28 +53,6 @@
                         {% endfor %}
                         </tbody>
                     </table>
-                    <div class="row">
-                        <div class="col-sm-5">
-                            <div class="dataTables_info" id="project_info" role="status" aria-live="polite">Showing 1 to 10 of 57 entries</div>
-                        </div>
-                        <div class="col-sm-7">
-                            <div class="dataTables_paginate paging_simple_numbers" id="project_paginate">
-                                <ul class="pagination">
-                                    <li class="paginate_button previous disabled" id="project_previous">
-                                        <a href="#" aria-controls="pages" data-dt-idx="0" tabindex="0">Previous</a>
-                                    </li>
-                                    {% for page in pages %}
-                                        <li class="paginate_button {% if page.active == 1 %} active {% endif %}">
-                                            <a href="#" aria-controls="page{{ page.index }}" data-dt-idx="{{ page.index }}" tabindex="0">{{ page.index }}</a>
-                                        </li>
-                                    {% endfor %}
-                                    <li class="paginate_button next" id="project_next">
-                                        <a href="#" aria-controls="project" data-dt-idx="0" tabindex="0">Next</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             <!-- /.box-body -->
@@ -120,7 +98,6 @@
                                 <select class="form-control" id="between_unit" name="input_between_unit">
                                     <option>分钟</option>
                                     <option>小时</option>
-                                    <option>天</option>
                                 </select>
                             </div>
                             <div id="view_input_runtime" class="col-sm-10">
@@ -185,11 +162,20 @@
     <script src="{% static "plugins/timepicker/bootstrap-timepicker.min.js" %}"></script>
     <link rel="stylesheet" href="{% static "plugins/timepicker/bootstrap-timepicker.css" %}">
     <script>
-        $('#menu_dashboard').addClass('active');
-        $('#menu_service').removeClass('active');
+        $('#menu_service').addClass('active');
+        $('#menu_timing_task').addClass('active');
         $('#page_header').text('定时任务');
         $('#page_nav').text('项目管理');
         $('#page_name').text('定时任务');
+
+        $('#task_table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true
+        });
 
         $('.datetimepicker').datetimepicker({
                 format: 'YYYY-MM-DD HH:mm:ss'

@@ -4,18 +4,25 @@ import yaml
 import os
 from interval import Interval, IntervalSet
 from setting.models import CustomValidateRule
+from dashboard.models import ApiTestExecuteLog
 from custom_validator import CustomValidator
 import re
+from math_validator import MathValidator
+import json
 
 
 class BaseValidator:
-    def __init__(self, response_data):
+    def __init__(self, response_data, api_id, project_id, test_id):
         self.type_conf = yaml.load(open(os.path.dirname(__file__) + '/../conf/field_type.yaml'))
         self.response_data = response_data
         self.error_list = list()
+        self.api_id = api_id
+        self.test_id = test_id
+        self.project_id = project_id
 
     def validate(self, validate_body, validate_method):
 
+        # 这里是api的基本检查
         for body in validate_body:
             key = body.key
             path = body.path
@@ -23,31 +30,35 @@ class BaseValidator:
             type_rule = body.type_rule
             self.validate_field_by_default(path=path, rule=type_rule, type_str=type_str)
 
-
-        # 这里添加自定义检查的步骤
+        # 这里是api自定义检查
         custom_rule = CustomValidateRule.objects.get(name=validate_method)
 
         if not custom_rule.is_default:
-            # 这里添加自定义检查的步骤
             custom_validator = CustomValidator(rule_id=custom_rule.id)
             if custom_validator(self.response_data):
                 self.error_list.append(custom_validator(self.response_data))
-            pass
 
+        # 这里是数学检查
+        math_validator = MathValidator()
+        # list_x = math_validator.parse_response(self.response_data)
+        api_log_list = ApiTestExecuteLog.objects.filter(api_id=self.api_id, project_id=self.project_id,
+                                                        test_id=self.test_id, execute_result=True)
+        if len(api_log_list) > 0:
+            last_resp_data = api_log_list[len(api_log_list) - 1].success_data
+            last_resp_data = json.loads(last_resp_data)
+
+        # 返回验证结果
         if len(self.error_list):
             # 如果error_list里面有错误信息，说明有字段校验未通过，返回错误信息
             return {
                 'status': False,
                 'msg': self.error_list
             }
-
-            pass
         else:
             return {
                 'status': True,
-                'success_data': self.response_data
+                'success_data': json.dumps(self.response_data)
             }
-            pass
 
     def str_default_validate(self, path, value, rule):
 

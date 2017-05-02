@@ -22,29 +22,32 @@ def detail_view(request, project_id, api_id):
     print api_id
 
     api_info = ApiInfo.objects.get_or_create(id=api_id)[0]
-    print api_info.name
+    if int(project_id) == api_info.project.id:
 
-    param_list = CommonRequestParam.objects.all()
-    resp_header_list = ResponseHeader.objects.all()
-    resp_body_list = ResponseBody.objects.all()
-    key_type_list = KeyType.objects.all()
-    api_test_list = ApiTest.objects.all()
-    api_test_method_list = CustomValidateRule.objects.all()
-    api_test_task_type_list = ApiTestTaskType.objects.all()
+        print api_info.name
 
-    return render(request=request, template_name='api/detail_view.html', context={
-        'api_info': api_info,
-        'api_id': api_id,
-        'name': 'API_DETAIL',
-        'param_list': param_list,
-        'resp_header_list': resp_header_list,
-        'resp_body_list': resp_body_list,
-        'key_type_list': key_type_list,
-        # 'type_rule_list': type_rule_list,
-        'api_test_list': api_test_list,
-        'api_test_method_list': api_test_method_list,
-        'api_test_task_type_list': api_test_task_type_list
-    })
+        param_list = CommonRequestParam.objects.filter(api_info=api_info)
+        response = Response.objects.get_or_create(api_info=api_info)[0]
+        resp_header_list = ResponseHeader.objects.filter(response=response)
+        resp_body_list = ResponseBody.objects.filter(response=response)
+        key_type_list = KeyType.objects.all()
+        api_test_list = ApiTest.objects.filter(api_info=api_info)
+        api_test_method_list = CustomValidateRule.objects.all()
+        api_test_task_type_list = ApiTestTaskType.objects.all()
+
+        return render(request=request, template_name='api/detail_view.html', context={
+            'api_info': api_info,
+            'api_id': api_id,
+            'name': 'API_DETAIL',
+            'param_list': param_list,
+            'resp_header_list': resp_header_list,
+            'resp_body_list': resp_body_list,
+            'key_type_list': key_type_list,
+            # 'type_rule_list': type_rule_list,
+            'api_test_list': api_test_list,
+            'api_test_method_list': api_test_method_list,
+            'api_test_task_type_list': api_test_task_type_list
+        })
 
 
 def add_request_param(request, project_id, api_id):
@@ -58,7 +61,7 @@ def add_request_param(request, project_id, api_id):
             type = data.get('type')
             url_encode = data.get('url_encode')
 
-            api_info = ApiInfo.objects.get_or_create(name='cm_test_api')[0]
+            api_info = ApiInfo.objects.get(id=api_id)
 
             request_param = CommonRequestParam(api_info=api_info, key=name, value=value, position=position, type=type,
                                                url_encode=url_encode)
@@ -120,7 +123,7 @@ def add_resp_header(request, project_id, api_id):
             key = data.get('key')
             value = data.get('value')
 
-            api_info = ApiInfo.objects.get_or_create(name='cm_test_api')[0]
+            api_info = ApiInfo.objects.get(id=api_id)
             resp = Response.objects.get_or_create(api_info=api_info)[0]
 
             resp_header = ResponseHeader(response=resp, key=key, value=value)
@@ -361,40 +364,40 @@ def execute_api_test(request, project_id, api_id):
         test_id = data.get('testid')
 
         test_executor = TestExecutor(test_id=test_id)
-        api_test = ApiTest.objects.get(id=test_id)
-        success_run = api_test.success_run
-        total_run = api_test.total_run
-        fail_run = api_test.fail_run
-        total_run += 1
-
+        # api_test = ApiTest.objects.get(id=test_id)
+        # success_run = api_test.success_run
+        # total_run = api_test.total_run
+        # fail_run = api_test.fail_run
+        # total_run += 1
+        #
         context = test_executor.send_request()
-        if context.get('status'):
-            # 校验成功
-            success_run += 1
-
-        else:
-            # 校验失败
-            fail_run += 1
-
-        api_test.success_run = success_run
-        api_test.total_run = total_run
-        api_test.fail_run = fail_run
-        api_test.save()
-
-        context['total_run'] = total_run
-        context['fail_run'] = fail_run
-        context['success_run'] = success_run
-        current_time = str(time.time())
-
-        execute_log = ApiTestExecuteLog(project_id=int(project_id),
-                                        api_id=int(api_id),
-                                        scheduled=False,
-                                        execute_result=context.get('status'),
-                                        error_msg=context.get('msg', 'success'),
-                                        success_data=context.get('success_data', 'no data'),
-                                        execute_time=current_time)
-
-        execute_log.save()
+        # if context.get('status'):
+        #     # 校验成功
+        #     success_run += 1
+        #
+        # else:
+        #     # 校验失败
+        #     fail_run += 1
+        #
+        # api_test.success_run = success_run
+        # api_test.total_run = total_run
+        # api_test.fail_run = fail_run
+        # api_test.save()
+        #
+        # context['total_run'] = total_run
+        # context['fail_run'] = fail_run
+        # context['success_run'] = success_run
+        # current_time = str(time.time())
+        #
+        # execute_log = ApiTestExecuteLog(project_id=int(project_id),
+        #                                 api_id=int(api_id),
+        #                                 scheduled=False,
+        #                                 execute_result=context.get('status'),
+        #                                 error_msg=context.get('msg', 'success'),
+        #                                 success_data=context.get('success_data', 'no data'),
+        #                                 execute_time=current_time)
+        #
+        # execute_log.save()
 
         return HttpResponse(json.dumps(context))
 

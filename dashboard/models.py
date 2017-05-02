@@ -10,11 +10,12 @@ import datetime
 class ApiTestExecuteLog(models.Model):
     project_id = models.IntegerField(default=0)
     api_id = models.IntegerField(default=0)
+    test_id = models.IntegerField(default=0)
     execute_time = models.CharField(max_length=128)
     scheduled = models.BooleanField(default=False)
     task_id = models.IntegerField(default=0)
     execute_result = models.BooleanField(default=False)
-    error_msg = models.CharField(max_length=256)
+    error_msg = models.TextField(max_length=None)
     success_data = models.TextField(max_length=None)
 
     def __str__(self):

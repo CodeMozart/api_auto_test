@@ -2,14 +2,33 @@
 
     <div class="col-md-10">
         <div class="box">
-            <div class="box-header">
-                <div>任务：{{ task.name }}</div>
-                <div>任务类型：{% if task.type == 1 %} 定时 {% else %} 循环 {% endif %}</div>
-                <div>间隔：{{ task.between_time }}</div>
-                <div>开始时间：{{ task.start_time }}</div>
-                <div>结束时间：{{ task.end_time }}</div>
-                <div>全局变量：{{ task.global_value }}</div>
-                <div>状态：{{ task.state }}</div>
+            <div class="box-body no-padding" style="display: inline">
+                <table class="table table-condensed" width="50%">
+                    <tr>
+                        <th>任务：</th>
+                        <td>{{ task.name }}</td>
+                        <th>任务类型：</th>
+                        <td>{% if task.type == 1 %} 定时 {% else %} 循环 {% endif %}</td>
+                    </tr>
+                    <tr>
+                        <th>定时/间隔：</th>
+                        <td>{% if task.type == 1 %} 定时 {% else %} 循环 {% endif %}</td>
+                        <th>开始时间：</th>
+                        <td>{{ task.start_time }}</td>
+                    </tr>
+                    <tr>
+                        <th>结束时间：</th>
+                        <td>{{ task.end_time }}</td>
+                        <th>全局变量：</th>
+                        <td>{{ task.global_value }}</td>
+                    </tr>
+                    <tr>
+                        <th>状态：</th>
+                        <td>{{ task.state }}</td>
+                        <th>最近修改：</th>
+                        <td>{{ api_info.modify_recently }}</td>
+                    </tr>
+                </table>
             </div>
         </div>
     </div>
@@ -45,7 +64,7 @@
                         </thead>
                         <tbody>
                         {% for api_test in api_test_list %}
-                            <tr id="task_tr{{ api_test.id }}" onclick="location='/task/task_id{{ api_test.id }}'">
+                            <tr id="api_test_tr{{ api_test.id }}">
                                 <td>{{ api_test.name }}</td>
                                 <td>{{ api_test.project_name }}</td>
                                 <td>{{ api_test.api_name }}</td>
@@ -57,7 +76,7 @@
                                 <td>{{ api_test.fail_run }}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-danger" onclick="delete_api_test({{ api_test.id }})"><i class="fa fa-trash"></i>
+                                        <button type="button" class="btn btn-danger" onclick="delete_api_test({{ api_test.id }},{{ task.id }})"><i class="fa fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -183,7 +202,7 @@
         $('#add_error_message').hide();
 
         function change_select_project(project_id) {
-{#            alert('点击了修改project' + project_id);#}
+            {#            alert('点击了修改project' + project_id);#}
             jQuery.ajax({
                 url: 'change_select_project',
                 type: 'post',
@@ -206,7 +225,7 @@
         }
         function change_select_api(api_id) {
             api_id = $('select[name="input_api"]').val();
-{#            alert('点击了修改api' + api_id);#}
+            {#            alert('点击了修改api' + api_id);#}
             jQuery.ajax({
                 url: 'change_select_api',
                 type: 'post',
@@ -226,7 +245,6 @@
         }
         function change_select_api_test(api_test_id) {
             api_test_id = $('select[name="input_api_test"]').val();
-            alert('点击了修改api_test_id' + api_test_id);
             if (api_test_id > 0) {
                 $('#add_error_message').hide();
             }
@@ -234,12 +252,12 @@
                 $('#add_error_message').show();
             }
         }
-        function delete_api_test(api_test_id) {
-{#            alert('点击了删除');#}
+        function delete_api_test(api_test_id, task_id) {
+{#            alert('点击了删除' + api_test_id + ' ' + task_id);#}
             jQuery.ajax({
                 type: 'post',
                 url: 'delete_api_test',
-                data: {'api_test_id': api_test_id},
+                data: {'api_test_id': api_test_id, 'task_id': task_id},
                 success: function (p) {
                     var response = JSON.parse(p);
                     console.log(response);
@@ -249,7 +267,6 @@
                     }
                 },
                 error: function (e) {
-
                 }
             });
             event.stopPropagation();

@@ -81,11 +81,11 @@ def add_task(request):
                 if data.get('input_between_unit') == '分钟':
                     between_time *= 60
                     minute = '*/%s' % data.get('input_between')
-                    hour = 0
+                    hour = '*'
                 elif data.get('input_between_unit') == '小时':
                     between_time = between_time * 60 * 60
                     hour = '*/%s' % data.get('input_between')
-                    minute = 0
+                    minute = '*'
                 elif data.get('input_between_unit') == '天':
                     between_time = between_time * 60 * 60 * 24
                     hour = '*/%s' % int(data.get('input_between')) * 24
@@ -125,9 +125,9 @@ def add_task(request):
             crontab = CrontabSchedule.objects.get_or_create(minute=task.minute, hour=task.hour)[0]
             crontab.save()
             periodic_task = PeriodicTask.objects.get_or_create(name=task.name)[0]
-            periodic_task.task = 'task.task.api_test_time_task'
+            periodic_task.task = 'task.tasks.api_test_time_task'
             periodic_task.crontab = crontab
-            periodic_task.args = [task.id]
+            periodic_task.args = [int(task.id)]
             if task.state == 1:
                 periodic_task.enable = True
             elif task.state == 2:
@@ -218,8 +218,6 @@ def task_detail(request):
 def add_api_test(request):
     data = request.POST
     task_id = data.get('input_task_id')
-    project_id = data.get('project_id')
-    api_id = data.get('project_id')
     api_test_id = data.get('input_api_test')
     task = TimingTask.objects.get(id=task_id)
     api_test_id_list = task.api_test_list.split(',')

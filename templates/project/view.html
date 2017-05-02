@@ -50,10 +50,10 @@
                     <tbody>
                     {% for project in project_list %}
                         <tr id="project_tr{{ project.id }}" onclick="click_project({{ project.id }})">
-                            <th><a href="/project/6">{{ project.name }}</a>
-                            </th>
-                            <th>{{ project.created }}</th>
-                            <th>{{ project.owner }}</th>
+                            <td>{{ project.name }}
+                            </td>
+                            <td>{{ project.created }}</td>
+                            <td>{{ project.owner }}</td>
                             <td>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-warning" onclick="change_project({{ project.id }})"><i class="fa fa-pencil"></i>
@@ -64,9 +64,9 @@
                             </td>
                         </tr>
                         <tr id="edit_project_tr{{ project.id }}" style="display:none">
-                            <th><input id="edit_input_name" name="edit_name" type="text" class="form-control" value="{{ project.name }}"></th>
-                            <th>{{ project.created }}</th>
-                            <th><input id="edit_input_owner" name="edit_owner" type="text" class="form-control" value="{{ project.owner }}"></th>
+                            <td><input id="edit_input_name" name="edit_name" type="text" class="form-control" value="{{ project.name }}"></td>
+                            <td>{{ project.created }}</td>
+                            <td><input id="edit_input_owner" name="edit_owner" type="text" class="form-control" value="{{ project.owner }}"></td>
                             <td>
                                 <div class="btn-group">
                                     <button type="button" class="btn btn-warning" onclick="edit_project_complete({{ project.id }})"><i class="fa fa-pencil"></i>
@@ -77,28 +77,6 @@
                     {% endfor %}
                     </tbody>
                 </table>
-                <div class="row">
-                    <div class="col-sm-5">
-                        <div class="dataTables_info" id="project_info" role="status" aria-live="polite">Showing 1 to 10 of 57 entries</div>
-                    </div>
-                    <div class="col-sm-7">
-                        <div class="dataTables_paginate paging_simple_numbers" id="project_paginate">
-                            <ul class="pagination">
-                                <li class="paginate_button previous disabled" id="project_previous">
-                                    <a href="#" aria-controls="pages" data-dt-idx="0" tabindex="0">Previous</a>
-                                </li>
-                                {% for page in pages %}
-                                    <li class="paginate_button {% if page.active == 1 %} active {% endif %}">
-                                        <a href="#" aria-controls="page{{ page.index }}" data-dt-idx="{{ page.index }}" tabindex="0">{{ page.index }}</a>
-                                    </li>
-                                {% endfor %}
-                                <li class="paginate_button next" id="project_next">
-                                    <a href="#" aria-controls="project" data-dt-idx="0" tabindex="0">Next</a>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
             </div>
         </div>
         <!-- /.box-body -->
@@ -106,8 +84,7 @@
 
     <script id="tpl-project" type="text/html">
         <tr id="project_tr<%= id %>" onclick="click_project(<%= id %>)">
-            <th><a href="/project/6"><%= name %></a>
-            </th>
+            <th><%= name %></th>
             <th><%= created %></th>
             <th><%= owner %></th>
             <td>
@@ -146,8 +123,8 @@
     <script src="{% static "plugins/art-template-master/lib/template-web.js" %}"></script>
     <script src="{% static "plugins/datepicker/bootstrap-datepicker.js" %}"></script>
     <script>
-        $('#menu_dashboard').addClass('active');
-        $('#menu_service').removeClass('active');
+        $('#menu_service').addClass('active');
+        $('#menu_proxy_config').addClass('active');
         $('#page_header').text('项目列表');
         $('#page_header_descript').text('所有项目列表');
         $('#page_nav').text('项目管理');
@@ -156,6 +133,15 @@
             format: 'yyyy-mm-dd'
             }
         );
+
+        $('#project_table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true
+        });
 
         function click_project(project_id) {
 {#            alert('点击了项目' + project_id);#}

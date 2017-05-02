@@ -11,6 +11,9 @@ class Project(models.Model):
     created = models.IntegerField()
     owner = models.CharField(max_length=30)
 
+    def __str__(self):
+        return self.name
+
 
 class ProjectConfig(models.Model):
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
@@ -18,3 +21,6 @@ class ProjectConfig(models.Model):
     base_url = models.CharField(max_length=128)
     common_params = models.CharField(max_length=128)
     description = models.CharField(max_length=128)
+
+    def __str__(self):
+        return self.name

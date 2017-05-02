@@ -62,7 +62,7 @@ class ApiTestTaskType(models.Model):
 class CommonRequestParam(models.Model):
     api_info = models.ForeignKey(ApiInfo)
     key = models.CharField(max_length=128)
-    value = models.CharField(max_length=128)
+    value = models.CharField(max_length=1024)
     type = models.CharField(max_length=128)
     position = models.CharField(max_length=128)
     url_encode = models.BooleanField(default=True)

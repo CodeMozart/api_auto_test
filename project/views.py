@@ -15,12 +15,10 @@ from models import *
 
 # Create your views here.
 def view(request):
-
     return render(request, 'project/view.html', {'project_list': get_project_list()})
 
 
 def get_project_list():
-
     all_item = Project.objects.all()
     project_list = []
     for item in all_item:
@@ -104,7 +102,8 @@ def create_config(request):
     base_url = request.POST['base_url']
     common_params = request.POST['common_params']
     description = request.POST['description']
-    config = ProjectConfig(project_id=project_id, name=name, base_url=base_url, common_params=common_params, description=description)
+    config = ProjectConfig(project_id=project_id, name=name, base_url=base_url, common_params=common_params,
+                           description=description)
     config.save()
     return redirect('/project/' + project_id)
 
@@ -167,7 +166,7 @@ def create_api(request):
 
 def read_api(request):
     id = request.GET['id']
-    api = ApiInfo.objects.get(id = id)
+    api = ApiInfo.objects.get(id=id)
     data = {
         'id': api.id,
         'name': api.name,
