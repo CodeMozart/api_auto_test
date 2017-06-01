@@ -29,7 +29,7 @@
                         </thead>
                         <tbody>
                         {% for task in tasklist %}
-                            <tr id="task_tr{{ task.id }}" onclick="location='/task/detail?task_id={{ task.id }}'">
+                            <tr style="cursor: pointer;" id="task_tr{{ task.id }}" onclick="location='/task/detail?task_id={{ task.id }}'">
                                 <td>{{ task.name }}</td>
                                 <td>{% if task.type == 1 %} 定时 {% else %} 循环 {% endif %}</td>
                                 <td>{% if task.type == 1 %} {{ task.run_time }} {% else %} {{ task.between_time }} {% endif %}</td>

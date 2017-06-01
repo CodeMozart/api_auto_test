@@ -14,6 +14,7 @@ class ApiInfo(models.Model):
     url = models.URLField()
     scene = models.CharField(max_length=128)
     description = models.CharField(max_length=128)
+    url_path = models.CharField(max_length=128)
     overtime = models.IntegerField(default=10)
     validate_method = models.CharField(max_length=128)
     modify_recently = models.DateField()
@@ -27,7 +28,7 @@ class ApiTest(models.Model):
     project_id = models.IntegerField(default=0)
     name = models.CharField(max_length=128)
     test_method = models.CharField(max_length=128)
-    param = models.CharField(max_length=128)
+    param = models.CharField(max_length=1024)
     post_data = models.CharField(max_length=128)
     desc = models.CharField(max_length=128)
     task_type = models.CharField(max_length=128)
@@ -72,7 +73,7 @@ class CommonRequestParam(models.Model):
 
 
 class Response(models.Model):
-    api_info = models.ForeignKey(ApiInfo)
+    api_info = models.ForeignKey(ApiInfo, unique=True)
     body = models.CharField(max_length=2048)
     status_code = models.IntegerField(default=0)
 
@@ -92,7 +93,7 @@ class ResponseHeader(models.Model):
 class ResponseBody(models.Model):
     response = models.ForeignKey(Response)
     key = models.CharField(max_length=128, null=False)
-    path = models.CharField(max_length=128, null=False, unique=True)
+    path = models.CharField(max_length=128, null=False)
     type = models.CharField(max_length=128, null=False)
     type_rule = models.CharField(max_length=128, null=False)
 
@@ -107,6 +108,7 @@ class KeyType(models.Model):
 
     def __str__(self):
         return self.name
+
 
 # class TypeRule(models.Model):
 #     type = models.ForeignKey(KeyType)

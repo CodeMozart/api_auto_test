@@ -11,6 +11,7 @@ from django.db import connection
 
 from api.models import ApiInfo
 from models import *
+from setting.models import *
 
 
 # Create your views here.
@@ -42,7 +43,8 @@ def add_project(request):
             data = request.POST
             created_arr = time.strptime(data.get('created'), "%Y-%m-%d")
             created_int = int(time.mktime(created_arr))
-            project = Project(name=data.get('name'), created=created_int, owner=data.get('owner'))
+            name = data.get('name')
+            project = Project(name=name, created=created_int, owner=data.get('owner'))
             project.save()
             context = {'flag': 'Success', 'id': project.id}
         except Exception, e:
@@ -88,10 +90,13 @@ def change_project(request):
 def detail(request, project_id):
     config_list = list(ProjectConfig.objects.filter(project_id=project_id).values())
     api_list = list(ApiInfo.objects.filter(project_id=project_id).values())
+    validator_list = list(ApiValidator.objects.all().values())
+
     context = {
         'id': project_id,
         'project_config_list': config_list,
         'api_list': api_list,
+        'validator_list': validator_list
     }
     return render(request, 'project/detail.html', context)
 
@@ -100,9 +105,9 @@ def create_config(request):
     project_id = request.POST['project_id']
     name = request.POST['config_name']
     base_url = request.POST['base_url']
-    common_params = request.POST['common_params']
+    # common_params = request.POST['common_params']
     description = request.POST['description']
-    config = ProjectConfig(project_id=project_id, name=name, base_url=base_url, common_params=common_params,
+    config = ProjectConfig(project_id=project_id, name=name, base_url=base_url,
                            description=description)
     config.save()
     return redirect('/project/' + project_id)
@@ -115,7 +120,7 @@ def read_config(request):
         'id': config.id,
         'name': config.name,
         'base_url': config.base_url,
-        'common_params': config.common_params,
+        # 'common_params': config.common_params,
         'description': config.description
     }
     return HttpResponse(json.dumps(data))
@@ -126,13 +131,13 @@ def update_config(request):
     id = request.POST['id']
     name = request.POST['config_name']
     base_url = request.POST['base_url']
-    common_params = request.POST['common_params']
+    # common_params = request.POST['common_params']
     description = request.POST['description']
     config = ProjectConfig.objects.get(id=id)
     config.project_id = project_id
     config.name = name
     config.base_url = base_url
-    config.common_params = common_params
+    # config.common_params = common_params
     config.description = description
     config.save()
     return redirect('/project/' + project_id)
@@ -151,13 +156,14 @@ def create_api(request):
     name = request.POST['name']
     method = request.POST['method']
     url = request.POST['url']
-    scene = request.POST['scene']
-    description = request.POST['description']
+    url_path = request.POST['url_path']
+    # scene = request.POST['scene']
+    # description = request.POST['description']
     overtime = request.POST['overtime']
     validate_method = request.POST['validate_method']
     modify_recently = datetime.datetime.now().strftime('%Y-%m-%d')
 
-    api_info = ApiInfo(project_id=project_id, name=name, method=method, url=url, scene=scene, description=description,
+    api_info = ApiInfo(project_id=project_id, name=name, method=method, url=url,url_path=url_path,
                        overtime=overtime, validate_method=validate_method, modify_recently=modify_recently)
     api_info.save()
 
@@ -174,6 +180,7 @@ def read_api(request):
         'url': api.url,
         'scene': api.scene,
         'description': api.description,
+        'url_path': api.url_path,
         'overtime': api.overtime,
         'validate_method': api.validate_method,
     }
@@ -186,8 +193,9 @@ def update_api(request):
     name = request.POST['name']
     method = request.POST['method']
     url = request.POST['url']
-    scene = request.POST['scene']
-    description = request.POST['description']
+    # scene = request.POST['scene']
+    # description = request.POST['description']
+    url_path = request.POST['url_path']
     overtime = request.POST['overtime']
     validate_method = request.POST['validate_method']
     modify_recently = datetime.datetime.now().strftime('%Y-%m-%d')
@@ -197,8 +205,9 @@ def update_api(request):
     api.name = name
     api.method = method
     api.url = url
-    api.scene = scene
-    api.description = description
+    api.url_path = url_path
+    # api.scene = scene
+    # api.description = description
     api.overtime = overtime
     api.validate_method = validate_method
     api.modify_recently = modify_recently

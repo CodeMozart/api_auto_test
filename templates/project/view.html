@@ -17,7 +17,7 @@
                         <input id="add_created" name="created" type="text" class="form-control datepicker" placeholder="创建时间">
                     </th>
                     <th>
-                        <input id="add_owner" name="owner" type="text" class="form-control" placeholder="负责人">
+                        <input id="add_owner" name="owner" type="email" class="form-control" placeholder="负责人">
                     </th>
                     <th>
                         <div class="box-tools">
@@ -49,7 +49,7 @@
                     </thead>
                     <tbody>
                     {% for project in project_list %}
-                        <tr id="project_tr{{ project.id }}" onclick="click_project({{ project.id }})">
+                        <tr style="cursor: pointer;" id="project_tr{{ project.id }}" onclick="click_project({{ project.id }})">
                             <td>{{ project.name }}
                             </td>
                             <td>{{ project.created }}</td>

@@ -12,6 +12,7 @@ from models import *
 from django_celery_beat.models import PeriodicTask, CrontabSchedule
 from api.models import ApiInfo, ApiTest
 from project.models import Project
+from dashboard.models import ApiTestExecuteLog
 
 
 # Create your views here.
@@ -89,12 +90,6 @@ def add_task(request):
                 elif data.get('input_between_unit') == '天':
                     between_time = between_time * 60 * 60 * 24
                     hour = '*/%s' % int(data.get('input_between')) * 24
-            # minute = models.CharField(max_length=64, default='*')
-            # hour = models.CharField(max_length=64, default='*')
-            # day_of_week = models.CharField(max_length=64, default='*')
-            # day_of_month = models.CharField(max_length=64, default='*')
-            # month_of_year = models.CharField(max_length=64, default='*')
-
 
             starttime_arr = time.strptime(data.get('input_starttime'), "%Y-%m-%d %H:%M:%S")
             starttime_int = int(time.mktime(starttime_arr))
@@ -135,7 +130,6 @@ def add_task(request):
 
             periodic_task.save()
 
-
             context = {'flag': 'Success'}
         except Exception, e:
             context = {"flag": 'Error', "context": str(e)}
@@ -162,20 +156,6 @@ def delete_task(request):
     return render(request, 'task/view.html', {'task_list': get_task_list()})
 
 
-# api_info = models.ForeignKey(ApiInfo)
-#     project_id = models.IntegerField(default=0)
-#     name = models.CharField(max_length=128)
-#     test_method = models.CharField(max_length=128)
-#     param = models.CharField(max_length=128)
-#     post_data = models.CharField(max_length=128)
-#     desc = models.CharField(max_length=128)
-#     task_type = models.CharField(max_length=128)
-#     total_run = models.IntegerField(default=0)
-#     success_run = models.IntegerField(default=0)
-#     fail_run = models.IntegerField(default=0)
-#     status = models.CharField(max_length=128)
-
-
 def task_detail(request):
     data = request.GET
     task = TimingTask.objects.get(id=data.get('task_id'))
@@ -186,7 +166,20 @@ def task_detail(request):
         if api_test_id_list[0] == '':
             api_test_id_list = []
     project_list = Project.objects.all()
-    api_test_list = [ApiTest.objects.get(id=test_id) for test_id in api_test_id_list]
+    api_test_list = list()
+
+    for test_id in api_test_id_list:
+        try:
+            api_test = ApiTest.objects.get(id=test_id)
+            api_test_list.append(api_test)
+
+        except Exception, e:
+            if test_id in api_test_id_list:
+                api_test_id_list.remove(test_id)
+                str_api_test_list = ','.join(api_test_id_list)
+                task.api_test_list = str_api_test_list
+                task.save()
+
     need_api_test_list = []
     for api_test in api_test_list:
         need_api_test_dict = dict({})
@@ -213,6 +206,19 @@ def task_detail(request):
                   {'api_test_list': need_api_test_list,
                    'task': task,
                    'project_list': project_list})
+
+
+def result(request):
+    data = request.GET
+
+    api_test = ApiTest.objects.get(id=data.get('test_id'))
+    api_log_list = ApiTestExecuteLog.objects.filter(api_id=api_test.api_info.id, project_id=api_test.project_id,
+                                                    test_id=api_test.id).order_by('-execute_time')
+
+
+    print api_log_list
+    return render(request, 'task/result.html',
+                  {'api_log_list': api_log_list})
 
 
 def add_api_test(request):

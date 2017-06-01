@@ -17,7 +17,6 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 STATICFILES_DIRS = (os.path.join(BASE_DIR, "static"),)
 
-
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
 
@@ -30,7 +29,6 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '*'
 ]
-
 
 # Application definition
 
@@ -82,7 +80,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'auto_test.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/1.9/ref/settings/#databases
 
@@ -115,11 +112,11 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
-
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'zh-hans'
+# LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'Asia/Shanghai'
 
 USE_I18N = True
@@ -129,7 +126,6 @@ USE_TZ = True
 LOGIN_REDIRECT_URL = '/dashboard/'
 SESSION_COOKIE_AGE = 60 * 30
 SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
@@ -142,3 +138,4 @@ STATIC_URL = '/static/'
 CELERY_BROKER_URL = 'amqp://wanplus:wanplus@192.168.1.109:5672/wanplus'
 CELERY_TIMEZONE = 'Asia/Shanghai'
 CELERY_RESULT_BACKEND = 'django-db'
+# CELERY_WORKER_CONCURRENCY = 8

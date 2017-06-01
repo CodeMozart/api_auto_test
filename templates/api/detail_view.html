@@ -42,8 +42,8 @@
                                         <td id="api_base_validate_method">{{ api_info.validate_method }}</td>
                                     </tr>
                                     <tr>
-                                        <th>场景：</th>
-                                        <td id="api_base_scene">{{ api_info.scene }}</td>
+                                        <th>URL_PATH：</th>
+                                        <td id="api_base_url_path">{{ api_info.url_path }}</td>
                                         <th>最近修改：</th>
                                         <td id="api_base_modify_recently">{{ api_info.modify_recently }}</td>
                                     </tr>
@@ -241,9 +241,8 @@
         <div class="box-header">
             <h3 class="box-title">用例列表</h3>
             <div class="pull-right box-tools">
-                <button type="button" class="btn btn-success" data-toggle="modal"
+                <button type="button" class="btn btn-success"
                         id="api_test_add"
-                        data-target="#createApiTestModal"
                         onclick="modal_api_test_window(this)">
                     <i class="fa fa-plus"></i></button>
             </div>
@@ -266,9 +265,9 @@
                 </thead>
                 <tbody>
                 {% for api_test in api_test_list %}
-                    <tr id="api_test_id_{{ api_test.id }}">
+                    <tr style="cursor: pointer;" id="api_test_id_{{ api_test.id }}" onclick="location='/task/result?test_id={{ api_test.id }}'">
                         <td id="api_test_name_{{ api_test.id }}">{{ api_test.name }}</td>
-                        <td id="api_test_param_{{ api_test.id }}">{{ api_test.param }}</td>
+                        <td style="word-wrap:break-word;word-break:break-all;" width="30%" id="api_test_param_{{ api_test.id }}">{{ api_test.param }}</td>
                         <td id="api_test_data_{{ api_test.id }}">{{ api_test.post_data }}</td>
                         <td id="api_test_method_{{ api_test.id }}">{{ api_test.test_method }}</td>
                         <td id="api_test_task_type_{{ api_test.id }}">{{ api_test.task_type }}</td>
@@ -279,19 +278,17 @@
                         <td>
                             <div class="btn-group">
                                 <button id="api_test_run" type="button" class="btn btn-info"
-                                        onclick="execute_api_test(value)"
+                                        onclick="execute_api_test(value);event.cancelBubble=true;"
                                         value="{{ api_test.id }}">
                                     运行
                                 </button>
-                                <button id="api_test_modify" type="button" class="btn btn-warning" data-toggle="modal"
-                                        data-target="#createApiTestModal"
-                                        onclick="modal_api_test_window(this)"
+                                <button id="api_test_modify" type="button" class="btn btn-warning"
+                                        onclick="modal_api_test_window(this);event.cancelBubble=true;"
                                         value="{{ api_test.id }}">
                                     修改
                                 </button>
-                                <button id="api_test_delete" type="button" class="btn btn-danger" data-toggle="modal"
-                                        data-target="#createApiTestModal"
-                                        onclick="modal_api_test_window(this)"
+                                <button id="api_test_delete" type="button" class="btn btn-danger"
+                                        onclick="modal_api_test_window(this);event.cancelBubble=true;"
                                         value="{{ api_test.id }}">
                                     删除
                                 </button>
@@ -531,15 +528,21 @@
                                id="modal_api_base_request_method" placeholder="method"
                                required>
                     </div>
-                    <div class="form-group">
-                        <label for="base_url">URL</label>
-                        <input type="text" class="form-control" name="modal_api_base_url" placeholder="url"
-                               id="modal_api_base_url" required>
+                    <div>
+                        <label for="modal_api_base_url">HOST</label>
                     </div>
+                    <select class="form-control" name="url" id="modal_api_base_url">
+                        {% for host in project_config_list %}
+                            <option id="host_type_{{ host.id }}"
+                                    value="{{ host.name }}">{{ host.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <div class="form-group"></div>
                     <div class="form-group">
-                        <label for="select_scene">场景</label>
-                        <input type="text" class="form-control" name="modal_api_base_scene"
-                               id="modal_api_base_scene" placeholder="scene"
+                        <label for="select_url_path">URL_PATH</label>
+                        <input type="text" class="form-control" name="modal_api_base_url_path"
+                               id="modal_api_base_url_path" placeholder="url_path"
                                required>
                     </div>
                     <div class="form-group">
@@ -560,7 +563,7 @@
                     <div class="form-group">
                         <select class="form-control" name="select_validate_method"
                                 id="modal_api_base_validate_method">
-                            {% for method in api_test_method_list %}
+                            {% for method in validator_list %}
                                 <option id="api_base_validate_method_{{ type.id }}"
                                         value="{{ method.name }}">{{ method.name }}</option>
                             {% endfor %}
@@ -660,7 +663,7 @@
             <td id="api_test_status_<%= api_test_id %>"></td>
             <td>
                 <div class="btn-group">
-                    <button id="api_test_run" type="button" class="btn btn-info"
+                    <button id="api_test_run" type="button" class="btn btn-info" onclick="execute_api_test(value)"
                             value="{{ api_test.id }}">
                         运行
                     </button>
@@ -714,26 +717,34 @@
 
 
         function modal_api_base_window(obj) {
-{#            console.log($(obj));#}
 
             var name = $('#api_base_name').text();
             var request_method = $('#api_base_request_method').text();
             var url = $('#api_base_url').text();
-            var scene = $('#api_base_scene').text();
+            var url_path = $('#api_base_url_path').text();
             var desc = $('#api_base_desc').text();
             var overtime = $('#api_base_overtime').text();
             var validate_method = $('#api_base_validate_method').text();
 
             $('#modal_api_base_name').val(name).attr('required');
             $('#modal_api_base_request_method').val(request_method).attr('required');
-            $('#modal_api_base_url').val(url).attr('required');
-            $('#modal_api_base_scene').val(scene).attr('required');
+{#            $('#modal_api_base_url').val(url).attr('required');#}
+            $('#modal_api_base_url_path').val(url_path).attr('required');
             $('#modal_api_base_desc').val(desc).attr('required');
             $('#modal_api_base_overtime').val(overtime).attr('required');
+
             var select = document.getElementById("modal_api_base_validate_method");
             for (var i = 0; i < select.options.length; i++) {
                 if (select.options[i].innerHTML == validate_method) {
                     select.options[i].selected = true;
+                    break;
+                }
+            }
+
+            var host_select = document.getElementById("modal_api_base_url");
+            for (var j = 0; j < host_select.options.length; j++) {
+                if (host_select.options[j].innerHTML == url) {
+                    host_select.options[j].selected = true;
                     break;
                 }
             }
@@ -745,7 +756,7 @@
             var name = $('#modal_api_base_name').val();
             var request_method = $('#modal_api_base_request_method').val();
             var url = $('#modal_api_base_url').val();
-            var scene = $('#modal_api_base_scene').val();
+            var url_path = $('#modal_api_base_url_path').val();
             var desc = $('#modal_api_base_desc').val();
             var overtime = $('#modal_api_base_overtime').val();
             var validate_method = $('#modal_api_base_validate_method').val();
@@ -755,14 +766,12 @@
                     name : name,
                     request_method : request_method,
                     url : url,
-                    scene : scene,
+                    url_path : url_path,
                     desc : desc,
                     overtime : overtime,
                     validate_method : validate_method,
                     api_id : api_id
             };
-
-{#            console.log(data);#}
 
             modify_api_base_info(data, api_id)
 
@@ -770,7 +779,7 @@
 
         function modify_api_base_info(data) {
 
-            if (data.name && data.request_method && data.url && data.scene && data.desc && data.overtime && data.validate_method) {
+            if (data.name && data.request_method && data.url && data.url_path && data.desc && data.overtime && data.validate_method) {
                 jQuery.ajax({
                     type: 'post',
                     url: 'change_api_base_info/',
@@ -788,7 +797,7 @@
                             $('#api_base_name').text(data.name);
                             $('#api_base_request_method').text(data.request_method);
                             $('#api_base_url').text(data.url);
-                            $('#api_base_scene').text(data.scene);
+                            $('#api_base_url_path').text(data.url_path);
                             $('#api_base_desc').text(data.desc);
                             $('#api_base_overtime').text(data.overtime);
                             $('#api_base_validate_method').text(data.validate_method);
@@ -810,6 +819,8 @@
         function modal_api_test_window(obj) {
 
 {#            console.log($(obj).attr('id'));#}
+
+            $('#createApiTestModal').modal();
 
             var from_id = $(obj).attr('id');
             var api_test_id = $(obj).attr("value");
@@ -1481,11 +1492,11 @@
             var form_id = $(obj).attr('id');
             var param_id = $(obj).attr("value");
 
-            var key = $('#param_tr_key_' + param_id);
-            var type = $('#param_tr_type_' + param_id);
-            var position = $('#param_tr_position_' + param_id);
-            var value = $('#param_tr_value_' + param_id);
-            var encode = $('#param_tr_encode_' + param_id);
+            var key = $('#param_tr_key_' + param_id).text();
+            var type = $('#param_tr_type_' + param_id).text();
+            var position = $('#param_tr_position_' + param_id).text();
+            var value = $('#param_tr_value_' + param_id).text();
+            var encode = $('#param_tr_encode_' + param_id).text();
 
 
             if (form_id == 'param_modify') {

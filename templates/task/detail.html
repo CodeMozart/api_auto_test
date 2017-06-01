@@ -8,25 +8,25 @@
                         <th>任务：</th>
                         <td>{{ task.name }}</td>
                         <th>任务类型：</th>
-                        <td>{% if task.type == 1 %} 定时 {% else %} 循环 {% endif %}</td>
+                        <td id="td_task_type">{% if task.type == 1 %} 定时 {% else %} 循环 {% endif %}</td>
                     </tr>
                     <tr>
                         <th>定时/间隔：</th>
-                        <td>{% if task.type == 1 %} 定时 {% else %} 循环 {% endif %}</td>
+                        <td id="td_between_time">{% if task.type == 1 %} {{ task.run_time }} {% else %} {{ task.between_time }} {% endif %}</td>
                         <th>开始时间：</th>
-                        <td>{{ task.start_time }}</td>
+                        <td id="td_start_time">{{ task.start_time }}</td>
                     </tr>
                     <tr>
                         <th>结束时间：</th>
-                        <td>{{ task.end_time }}</td>
+                        <td id="td_end_time">{{ task.end_time }}</td>
                         <th>全局变量：</th>
                         <td>{{ task.global_value }}</td>
                     </tr>
                     <tr>
                         <th>状态：</th>
-                        <td>{{ task.state }}</td>
-                        <th>最近修改：</th>
-                        <td>{{ api_info.modify_recently }}</td>
+                        <td>{% if task.state == 1 %} 开启 {% else %} 关闭 {% endif %}</td>
+                        <th></th>
+                        <td></td>
                     </tr>
                 </table>
             </div>
@@ -45,9 +45,9 @@
             </div>
 
             <!-- /.box-header -->
-            <div class="box-body">
+            <div class="box-body table-responsive">
                 <div class="dataTables_wrapper form-inline dt-bootstrap">
-                    <table id="api_test_table" class="table table-bordered table-striped">
+                    <table id="api_test_table" class="table table-bordered table-hover">
                         <thead>
                         <tr>
                             <th>用例名称</th>
@@ -55,7 +55,6 @@
                             <th>接口名称</th>
                             <th>参数</th>
                             <th>验证方法</th>
-                            <th>任务类型</th>
                             <th>总运行次数</th>
                             <th>成功次数</th>
                             <th>失败次数</th>
@@ -64,19 +63,19 @@
                         </thead>
                         <tbody>
                         {% for api_test in api_test_list %}
-                            <tr id="api_test_tr{{ api_test.id }}">
+                            <tr style="cursor: pointer;" id="api_test_tr{{ api_test.id }}" onclick="location='/task/result?test_id={{ api_test.id }}'">
                                 <td>{{ api_test.name }}</td>
                                 <td>{{ api_test.project_name }}</td>
                                 <td>{{ api_test.api_name }}</td>
-                                <td>{{ api_test.param }}</td>
+                                <td style="word-wrap:break-word;word-break:break-all;" width="30%">{{ api_test.param }}</td>
                                 <td>{{ api_test.test_method }}</td>
-                                <td>{{ api_test.task_type }}</td>
                                 <td>{{ api_test.total_run }}</td>
                                 <td>{{ api_test.success_run }}</td>
                                 <td>{{ api_test.fail_run }}</td>
                                 <td>
                                     <div class="btn-group">
-                                        <button type="button" class="btn btn-danger" onclick="delete_api_test({{ api_test.id }},{{ task.id }})"><i class="fa fa-trash"></i>
+                                        <button type="button" class="btn btn-danger" onclick="delete_api_test({{ api_test.id }},{{ task.id }})"><i
+                                                class="fa fa-trash"></i>
                                         </button>
                                     </div>
                                 </td>
@@ -84,28 +83,6 @@
                         {% endfor %}
                         </tbody>
                     </table>
-                    <div class="row">
-                        <div class="col-sm-5">
-                            <div class="dataTables_info" id="project_info" role="status" aria-live="polite">Showing 1 to 10 of 57 entries</div>
-                        </div>
-                        <div class="col-sm-7">
-                            <div class="dataTables_paginate paging_simple_numbers" id="project_paginate">
-                                <ul class="pagination">
-                                    <li class="paginate_button previous disabled" id="project_previous">
-                                        <a href="#" aria-controls="pages" data-dt-idx="0" tabindex="0">Previous</a>
-                                    </li>
-                                    {% for page in pages %}
-                                        <li class="paginate_button {% if page.active == 1 %} active {% endif %}">
-                                            <a href="#" aria-controls="page{{ page.index }}" data-dt-idx="{{ page.index }}" tabindex="0">{{ page.index }}</a>
-                                        </li>
-                                    {% endfor %}
-                                    <li class="paginate_button next" id="project_next">
-                                        <a href="#" aria-controls="project" data-dt-idx="0" tabindex="0">Next</a>
-                                    </li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
                 </div>
             </div>
             <!-- /.box-body -->
@@ -200,6 +177,54 @@
             }
         );
         $('#add_error_message').hide();
+        $('#api_test_table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true
+        });
+        Date.prototype.format = function (format) {
+            var date = {
+                "M+": this.getMonth() + 1,
+                "d+": this.getDate(),
+                "h+": this.getHours(),
+                "m+": this.getMinutes(),
+                "s+": this.getSeconds(),
+                "q+": Math.floor((this.getMonth() + 3) / 3),
+                "S+": this.getMilliseconds()
+            };
+            if (/(y+)/i.test(format)) {
+                format = format.replace(RegExp.$1, (this.getFullYear() + '').substr(4 - RegExp.$1.length));
+            }
+            for (var k in date) {
+                if (new RegExp("(" + k + ")").test(format)) {
+                    format = format.replace(RegExp.$1, RegExp.$1.length == 1
+                        ? date[k] : ("00" + date[k]).substr(("" + date[k]).length));
+                }
+            }
+            return format;
+        };
+        var starttime = $('#td_start_time').text();
+        var newDate = new Date();
+        newDate.setTime(starttime * 1000);
+        var endtime = $('#td_end_time').text();
+        var newDate1 = new Date();
+        newDate1.setTime(endtime * 1000);
+        $('#td_start_time').text(newDate.format('yyyy-MM-dd hh:mm:ss'));
+        $('#td_end_time').text(newDate1.format('yyyy-MM-dd hh:mm:ss'));
+
+        var task_type = $('#td_task_type').text();
+        if ($.trim(task_type) == "循环") {
+            var betweentime = parseInt($('#td_between_time').text());
+            if (betweentime >= 60 * 60) {
+                $('#td_between_time').text(betweentime/3600 + '小时');
+            }
+            else {
+                $('#td_between_time').text(betweentime/60 + '分钟');
+            }
+        }
 
         function change_select_project(project_id) {
             {#            alert('点击了修改project' + project_id);#}
@@ -253,7 +278,7 @@
             }
         }
         function delete_api_test(api_test_id, task_id) {
-{#            alert('点击了删除' + api_test_id + ' ' + task_id);#}
+            {#            alert('点击了删除' + api_test_id + ' ' + task_id);#}
             jQuery.ajax({
                 type: 'post',
                 url: 'delete_api_test',

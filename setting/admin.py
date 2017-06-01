@@ -8,3 +8,5 @@ from models import *
 # Register your models here.
 
 admin.site.register(CustomValidateRule)
+admin.site.register(ApiValidator)
+

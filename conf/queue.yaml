@@ -1,0 +1,13 @@
+# 队列虚拟主机配置
+vhost_wanplus:
+    host: 192.168.1.109
+    login: wanplus
+    password: wanplus
+    vhost: wanplus
+vhost_:
+    host: 192.168.1.109
+    login: wanplus
+    password: wanplus
+    vhost: /
+
+

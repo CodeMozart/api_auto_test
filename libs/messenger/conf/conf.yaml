@@ -1,0 +1,42 @@
+# doc: http://sendcloud.sohu.com/doc/email_v2/
+email:
+  api: http://api.sendcloud.net/apiv2/mail/send
+  api_user: BatchSendOfWanplus
+  api_key: AiwwpDf7RWD8hMMy
+
+#doc: http://qydev.weixin.qq.com/wiki/index.php?title=%E9%A6%96%E9%A1%B5
+wx:
+  api: https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=ACCESS_TOKEN
+  api_access_token: https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=id&corpsecret=secrect
+
+# doc: http://open.work.weixin.qq.com/wwopen/doc#10167
+wx_work:
+  api: https://qyapi.weixin.qq.com/cgi-bin/message/send?access_token=%s
+  api_access_token: https://qyapi.weixin.qq.com/cgi-bin/gettoken?corpid=%s&corpsecret=%s
+  api_upload: https://qyapi.weixin.qq.com/cgi-bin/media/upload?access_token=%s&type=file
+  api_contacts: https://qyapi.weixin.qq.com/cgi-bin/user/list?department_id=%s&fetch_child=%s&access_token=%s
+  crop_id: WW7d9b948f358de867
+
+  secret_garen: MXXV8sGQW4MG5pd6hHUVaITggR-RYj502v-x6of0oVI
+  agent_id_garen: 1000002
+
+  secret_data_assistant: JMDnqTU6nhx-wwB1FwjEiWwVeQAoRTKcMVX_KRqozxM
+  agent_id_data_assistant: 1000004
+
+  secret_contacts: Vs9WnBg8_aDG7rj4lwNNX9eyaSshwsYONuWwR8yY86E
+
+  switcher:
+    all@wanplus.com:
+      - 1
+    ppn@wanplus.com:
+      - 2
+      - 5
+    pm@wanplus.com:
+      - 3
+    dev@wanplus.com:
+      - 4
+    mkt@wanplus.com:
+      - 6
+sms:
+  api: http://yunpian.com/v1/sms/send.json
+  api_key: 76ee24dfdf0e3e287033615b54d441fe

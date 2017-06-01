@@ -1,0 +1,193 @@
+{% extends "base.html" %} {% block content %} {% load custom_filter %}
+
+
+    <div class="col-md-10">
+        <div class="box">
+            <div class="box-header">
+                <h3 class="box-title">Log列表</h3>
+            </div>
+
+            <!-- /.box-header -->
+            <div class="box-body">
+                <div class="dataTables_wrapper form-inline dt-bootstrap">
+                    <table id="api_test_table" class="table table-bordered table-striped">
+                        <thead>
+                        <tr>
+                            <th>执行时间</th>
+                            <th>是否定时执行</th>
+                            <th>执行结果</th>
+                            <th>ErrorMsg</th>
+                            <th>返回数据</th>
+                            <th>URL</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        {% for log in api_log_list %}
+                            <tr id="api_test_tr{{ log.id }}">
+                                <td width="15%">{{ log.execute_time }}</td>
+                                <td width="10%">{{ log.scheduled }}</td>
+                                <td width="8%">{{ log.execute_result }}</td>
+                                <td>{{ log.error_msg }}</td>
+                                {#                                <td  style="word-wrap:break-word;word-break:break-all;" width="60%">{{ log.success_data }}</td>#}
+                                <td style="cursor: pointer;" width="8%">
+                                    <button onclick="show_data({{ log.success_data }})" type="button"
+                                            data-toggle="modal"
+                                            data-target="#dataModal"
+                                            value="{{ log.success_data }}">查看详情
+                                    </button>
+                                </td>
+                                <td style="word-wrap:break-word;word-break:break-all;" width="35%">{{ log.url }}</td>
+                            </tr>
+
+
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <!-- /.box-body -->
+        </div>
+    </div>
+
+    <!-- 模态框（Modal） -->
+    <div class="modal fade" id="dataModal" role="dialog" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="box box-success box-solid">
+                <div class="box-header">
+                    <h3 class="box-title">Response Data</h3>
+                    <div class="box-tools pull-right">
+                        <button type="button" class="btn btn-box-tool" data-dismiss="modal"><i
+                                class="fa fa-times"></i></button>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+
+
+                <div class="box-body">
+                    <pre id="response_lable"></pre>
+                </div>
+                <!-- /.box-body -->
+                <div class="box-footer">
+                    <button type="submit" class="btn btn-primary copy" onclick="copy_resp_data()" id="copyBtn">复制
+                    </button>
+                </div>
+
+            </div>
+        </div><!-- /.modal -->
+    </div>
+
+
+    {% load staticfiles %}
+    <link rel="stylesheet" href="{% static "plugins/datatables/dataTables.bootstrap.css" %}">
+    <script src="{% static "plugins/echarts/echarts.min.js" %}"></script>
+    <script src="{% static "plugins/echarts/macarons.js" %}"></script>
+    <!-- DataTables -->
+    <script src="{% static "plugins/datatables/jquery.dataTables.min.js" %}"></script>
+    <script src="{% static "plugins/datatables/dataTables.bootstrap.min.js" %}"></script>
+    <!-- SlimScroll -->
+    <script src="{% static "plugins/slimScroll/jquery.slimscroll.min.js" %}"></script>
+    <!-- FastClick -->
+    <script src="{% static "plugins/fastclick/fastclick.js" %}"></script>
+    <script src="{% static "plugins/art-template-master/lib/template-web.js" %}"></script>
+    <script src="{% static "plugins/timepicker/bootstrap-timepicker.js" %}"></script>
+    <script src="{% static "plugins/jquery-zclip/jquery.zclip.js" %}"></script>
+
+
+    <script>
+        $('#menu_dashboard').addClass('active');
+        $('#menu_service').removeClass('active');
+        $('#page_header').text('执行结果');
+        $('#page_nav').text('项目管理');
+        $('#page_name').text('定时任务');
+        $('#page_name2').text('测试用例');
+
+        $('.datetimepicker').datetimepicker({
+                    format: 'YYYY-MM-DD HH:mm:ss'
+                }
+        );
+        $('#add_error_message').hide();
+        $('#api_test_table').DataTable({
+            "paging": true,
+            "lengthChange": true,
+            "searching": true,
+            "ordering": true,
+            "info": true,
+            "autoWidth": true
+        });
+
+        function copy_resp_data() {
+            $('#copyBtn').zclip({
+                path: "{% static "plugins/jquery-zclip/ZeroClipboard.swf" %}",
+                copy: function () {
+                    return $('#response_lable').text()
+                }
+            });
+        }
+
+
+        function show_data(success_data) {
+            console.log(success_data);
+            {#            data = JSON.stringify(success_data);#}
+            if (success_data) {
+                $('#response_lable').html(syntaxHighlight(success_data));
+            }
+            else {
+                $('#response_lable').text('')
+            }
+        }
+
+
+        function syntaxHighlight(json) {
+            if (typeof json != 'string') {
+                json = JSON.stringify(json, undefined, 2);
+            }
+            json = json.replace(/&/g, '&').replace(/</g, '<').replace(/>/g, '>');
+            return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
+                var cls = 'number';
+                if (/^"/.test(match)) {
+                    if (/:$/.test(match)) {
+                        cls = 'key';
+                    } else {
+                        cls = 'string';
+                    }
+                } else if (/true|false/.test(match)) {
+                    cls = 'boolean';
+                } else if (/null/.test(match)) {
+                    cls = 'null';
+                }
+                return '<span class="' + cls + '">' + match + '</span>';
+            });
+        }
+
+
+    </script>
+
+    <style>
+        pre {
+            outline: 1px solid #ccc;
+            padding: 5px;
+            margin: 5px;
+        }
+
+        .string {
+            color: green;
+        }
+
+        .number {
+            color: darkorange;
+        }
+
+        .boolean {
+            color: blue;
+        }
+
+        .null {
+            color: magenta;
+        }
+
+        .key {
+            color: red;
+        }
+    </style>
+
+{% endblock %}

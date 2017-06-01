@@ -8,8 +8,8 @@ import time
 from datetime import datetime
 from test_executor.test_executor import TestExecutor
 from dashboard.models import ApiTestExecuteLog
-from setting.models import CustomValidateRule
-
+from setting.models import CustomValidateRule, ApiValidator
+from project.models import *
 
 # Create your views here.
 
@@ -34,6 +34,10 @@ def detail_view(request, project_id, api_id):
         api_test_list = ApiTest.objects.filter(api_info=api_info)
         api_test_method_list = CustomValidateRule.objects.all()
         api_test_task_type_list = ApiTestTaskType.objects.all()
+        validator_list = list(ApiValidator.objects.all().values())
+
+        project = Project.objects.get(id=project_id)
+        project_config_list = ProjectConfig.objects.filter(project=project)
 
         return render(request=request, template_name='api/detail_view.html', context={
             'api_info': api_info,
@@ -43,10 +47,11 @@ def detail_view(request, project_id, api_id):
             'resp_header_list': resp_header_list,
             'resp_body_list': resp_body_list,
             'key_type_list': key_type_list,
-            # 'type_rule_list': type_rule_list,
+            'project_config_list': project_config_list,
             'api_test_list': api_test_list,
             'api_test_method_list': api_test_method_list,
-            'api_test_task_type_list': api_test_task_type_list
+            'api_test_task_type_list': api_test_task_type_list,
+            'validator_list':validator_list
         })
 
 
@@ -332,7 +337,7 @@ def change_api_base_info(request, project_id, api_id):
             request_method = data.get('request_method')
             validate_method = data.get('validate_method')
             url = data.get('url')
-            scene = data.get('scene')
+            url_path = data.get('url_path')
             desc = data.get('desc')
             overtime = data.get('overtime')
             current_date = datetime.now().strftime('%Y-%m-%d')
@@ -343,7 +348,7 @@ def change_api_base_info(request, project_id, api_id):
             api_info.validate_method = validate_method
             api_info.overtime = overtime
             api_info.url = url
-            api_info.scene = scene
+            api_info.url_path = url_path
             api_info.description = desc
             api_info.modify_recently = current_date
             api_info.save()
@@ -364,40 +369,7 @@ def execute_api_test(request, project_id, api_id):
         test_id = data.get('testid')
 
         test_executor = TestExecutor(test_id=test_id)
-        # api_test = ApiTest.objects.get(id=test_id)
-        # success_run = api_test.success_run
-        # total_run = api_test.total_run
-        # fail_run = api_test.fail_run
-        # total_run += 1
-        #
         context = test_executor.send_request()
-        # if context.get('status'):
-        #     # 校验成功
-        #     success_run += 1
-        #
-        # else:
-        #     # 校验失败
-        #     fail_run += 1
-        #
-        # api_test.success_run = success_run
-        # api_test.total_run = total_run
-        # api_test.fail_run = fail_run
-        # api_test.save()
-        #
-        # context['total_run'] = total_run
-        # context['fail_run'] = fail_run
-        # context['success_run'] = success_run
-        # current_time = str(time.time())
-        #
-        # execute_log = ApiTestExecuteLog(project_id=int(project_id),
-        #                                 api_id=int(api_id),
-        #                                 scheduled=False,
-        #                                 execute_result=context.get('status'),
-        #                                 error_msg=context.get('msg', 'success'),
-        #                                 success_data=context.get('success_data', 'no data'),
-        #                                 execute_time=current_time)
-        #
-        # execute_log.save()
 
         return HttpResponse(json.dumps(context))
 

@@ -2,6 +2,9 @@
 import os
 import sys
 
+reload(sys)
+sys.setdefaultencoding('utf-8')
+
 if __name__ == "__main__":
     os.environ.setdefault("DJANGO_SETTINGS_MODULE", "auto_test.settings")
 
